@@ -1,22 +1,39 @@
+from protocols.http import HttpRequest, HttpResponse
+
+
 class SignUpController:
-    def handle(self, http_request):
-        required_fields = ["name", "email", "password", "passwordConfirmation"]
-        body = http_request.get("body", {})
+    def handle(self, http_request: HttpRequest) -> HttpResponse:
+        if not http_request.body.get("name"):
+            return HttpResponse(
+                status_code=400,
+                body={"error": "Missing param: name"}
+            )
+        
+        if not http_request.body.get("email"):
+            return HttpResponse(
+                status_code=400,
+                body={"error": "Missing param: email"}
+            )
+        
+        if not http_request.body.get("password"):
+            return HttpResponse(
+                status_code=400,
+                body={"error": "Missing param: password"}
+            )
+        
+        if not http_request.body.get("passwordConfirmation"):
+            return HttpResponse(
+                status_code=400,
+                body={"error": "Missing param: passwordConfirmation"}
+            )
 
-        for field in required_fields:
-            if field not in body or not body[field]:
-                return {
-                    "statusCode": 400,
-                    "body": {"error": f"Missing param: {field}"}
-                }
+        if http_request.body["password"] != http_request.body["passwordConfirmation"]:
+            return HttpResponse(
+                status_code=400,
+                body={"error": "Password confirmation does not match password"}
+            )
 
-        if body["password"] != body["passwordConfirmation"]:
-            return {
-                "statusCode": 400,
-                "body": {"error": "Password confirmation does not match password"}
-            }
-
-        return {
-            "statusCode": 200,
-            "body": {"message": "User signed up successfully"}
-        }
+        return HttpResponse(
+            status_code=200,
+            body={"message": "User signed up successfully"}
+        )
