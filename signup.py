@@ -1,8 +1,12 @@
 from protocols.http import HttpRequest, HttpResponse
 from errors.missing_param_error import MissingParamError
+from domain.usecases.add_account import AddAccount, AddAccountModel
 
 
 class SignUpController:
+    def __init__(self, add_account: AddAccount):
+        self.add_account = add_account
+
     def handle(self, http_request: HttpRequest) -> HttpResponse:
         try:
             if not http_request.body.get("name"):
@@ -22,6 +26,12 @@ class SignUpController:
                     status_code=400,
                     body={"error": "Password confirmation does not match password"}
                 )
+
+            self.add_account.add(AddAccountModel(
+                name=http_request.body["name"],
+                email=http_request.body["email"],
+                password=http_request.body["password"]
+            ))
 
             return HttpResponse(
                 status_code=200,
