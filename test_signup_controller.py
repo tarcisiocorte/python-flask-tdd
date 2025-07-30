@@ -91,7 +91,12 @@ class TestSignUpController(unittest.TestCase):
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 200)
-        self.assertEqual(http_response.body, {"message": "User signed up successfully"})
+        self.assertEqual(http_response.body, {
+            "id": "valid_id",
+            "name": "valid_name",
+            "email": "valid_email@mail.com",
+            "password": "valid_password"
+        })
 
     def test_should_return_500_if_add_account_throws(self):
         add_account_stub = Mock(spec=AddAccount)
