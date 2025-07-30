@@ -1,5 +1,6 @@
 from signup_protocols import HttpRequest, HttpResponse, AddAccount, AddAccountModel
 from errors.missing_param_error import MissingParamError
+from errors.server_error import ServerError
 
 
 class SignUpController:
@@ -34,4 +35,9 @@ class SignUpController:
             return HttpResponse(
                 status_code=400,
                 body={"error": str(e)}
+            )
+        except Exception:
+            return HttpResponse(
+                status_code=500,
+                body={"error": "Internal server error"}
             )
