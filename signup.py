@@ -21,7 +21,7 @@ class SignUpController:
                     body={"error": "Password confirmation does not match password"}
                 )
 
-            self.add_account.add(AddAccountModel(
+            account = self.add_account.add(AddAccountModel(
                 name=http_request.body["name"],
                 email=http_request.body["email"],
                 password=http_request.body["password"]
@@ -29,7 +29,12 @@ class SignUpController:
 
             return HttpResponse(
                 status_code=200,
-                body={"message": "User signed up successfully"}
+                body={
+                    "id": account.id,
+                    "name": account.name,
+                    "email": account.email,
+                    "password": account.password
+                }
             )
         except MissingParamError as e:
             return HttpResponse(
