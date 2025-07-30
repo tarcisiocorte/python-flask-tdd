@@ -4,6 +4,7 @@ from signup import SignUpController
 from protocols.http import HttpRequest
 from domain.usecases.add_account import AddAccount, AddAccountModel
 from domain.models.account import AccountModel
+from errors.server_error import ServerError
 
 
 def make_add_account_stub() -> AddAccount:
@@ -91,6 +92,20 @@ class TestSignUpController(unittest.TestCase):
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 200)
         self.assertEqual(http_response.body, {"message": "User signed up successfully"})
+
+    def test_should_return_500_if_add_account_throws(self):
+        add_account_stub = Mock(spec=AddAccount)
+        add_account_stub.add.side_effect = Exception("Database error")
+        sut = SignUpController(add_account_stub)
+        http_request = HttpRequest({
+            "name": "any_name",
+            "email": "any_email@mail.com",
+            "password": "any_password",
+            "passwordConfirmation": "any_password"
+        })
+        http_response = sut.handle(http_request)
+        self.assertEqual(http_response.status_code, 500)
+        self.assertEqual(http_response.body, {"error": "Internal server error"})
 
     def test_should_call_add_account_with_correct_values(self):
         add_account_spy = Mock(spec=AddAccount)
