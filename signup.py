@@ -1,6 +1,5 @@
-from protocols.http import HttpRequest, HttpResponse
+from signup_protocols import HttpRequest, HttpResponse, AddAccount, AddAccountModel
 from errors.missing_param_error import MissingParamError
-from domain.usecases.add_account import AddAccount, AddAccountModel
 
 
 class SignUpController:
