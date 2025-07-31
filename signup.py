@@ -1,4 +1,4 @@
-from signup_protocols import HttpRequest, HttpResponse, AddAccount, AddAccountModel
+from protocols.signup_protocols import HttpRequest, HttpResponse, AddAccount, AddAccountModel
 from errors.missing_param_error import MissingParamError
 from errors.server_error import ServerError
 
