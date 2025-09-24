@@ -12,5 +12,5 @@ class AddAccountModel:
 
 class AddAccount(ABC):
     @abstractmethod
-    def add(self, account: AddAccountModel) -> AccountModel:
+    async def add(self, account: AddAccountModel) -> AccountModel:
         pass 
