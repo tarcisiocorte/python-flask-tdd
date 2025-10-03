@@ -117,8 +117,12 @@ class TestSignUpController(unittest.TestCase):
 
     def test_should_return_500_if_add_account_throws(self):
         email_validator_stub = make_email_validator_stub()
-        add_account_stub = Mock(spec=AddAccount)
-        add_account_stub.add.side_effect = Exception("Database error")
+        
+        class AddAccountStubWithError(AddAccount):
+            def add(self, account: AddAccountModel) -> AccountModel:
+                raise Exception("Database error")
+        
+        add_account_stub = AddAccountStubWithError()
         sut = SignUpController(email_validator_stub, add_account_stub)
         http_request = HttpRequest({
             "name": "any_name",
