@@ -33,6 +33,11 @@ class TestEmailValidatorAdapter(unittest.TestCase):
         is_valid = sut.is_valid('user@mail.example.com')
         self.assertTrue(is_valid)
 
+    def test_should_return_false_if_validator_returns_false(self):
+        sut = EmailValidatorAdapter()
+        is_valid = sut.is_valid('invalid_email')
+        self.assertFalse(is_valid)
+
 
 if __name__ == '__main__':
     unittest.main()
