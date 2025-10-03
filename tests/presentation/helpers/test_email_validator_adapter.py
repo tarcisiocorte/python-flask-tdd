@@ -51,6 +51,12 @@ class TestEmailValidatorAdapter(unittest.TestCase):
             is_valid = sut.is_valid('valid_email@mail.com')
             self.assertTrue(is_valid)
 
+    def test_should_call_validator_with_correct_email(self):
+        sut = EmailValidatorAdapter()
+        with patch('presentation.helpers.email_validator_adapter.validate_email') as mock_validate:
+            sut.is_valid('valid_email@mail.com')
+            mock_validate.assert_called_once_with('valid_email@mail.com', check_deliverability=False)
+
 
 if __name__ == '__main__':
     unittest.main()
