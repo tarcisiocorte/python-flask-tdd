@@ -1,6 +1,5 @@
 from protocols.signup_protocols import HttpResponse, HttpRequest, Controller, EmailValidator, AddAccount, AddAccountModel
-from errors.missing_param_error import MissingParamError
-from errors.invalid_param_error import InvalidParamError
+from errors import MissingParamError, InvalidParamError
 from presentation.helpers.http_helper import bad_request, server_error, ok
 
 
