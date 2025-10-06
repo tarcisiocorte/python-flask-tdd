@@ -1,0 +1,9 @@
+# Development dependencies
+-r requirements.txt
+
+# Additional development tools
+debugpy>=1.6.0
+ipython>=8.0.0
+jupyter>=1.0.0
+pip-check>=0.1.0
+coveralls>=3.3.0
