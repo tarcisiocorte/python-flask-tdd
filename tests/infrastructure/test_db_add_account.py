@@ -43,6 +43,23 @@ class TestDbAddAccount(unittest.TestCase):
 
             encrypt_spy.assert_called_once_with("valid_password")
 
+    def test_should_throw_if_encrypter_throws(self):
+        sut_types = make_sut()
+        sut = sut_types.sut
+        encrypter_stub = sut_types.encrypter_stub
+
+        with patch.object(encrypter_stub, 'encrypt', side_effect=Exception) as encrypt_spy:
+            account_data = AddAccountModel(
+                name="valid_name",
+                email="valid_email",
+                password="valid_password"
+            )
+
+            with self.assertRaises(Exception):
+                asyncio.run(sut.add(account_data))
+
+            encrypt_spy.assert_called_once_with("valid_password")
+
 
 if __name__ == '__main__':
     unittest.main()
