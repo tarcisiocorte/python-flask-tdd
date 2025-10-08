@@ -71,41 +71,124 @@ python-flask-tdd/
 
 ## 🧪 Running Unit Tests
 
-This project uses `pytest` for unit testing. Here are the different ways to run the tests:
+This project uses `pytest` for unit testing. You can run tests in multiple ways:
 
-### Run All Tests
+### 🚀 Quick Commands (Recommended)
+
+#### Using the Test Runner Script
 ```bash
-pytest
+# Quick test run (quiet mode)
+python test_runner.py test
+
+# Verbose test output
+python test_runner.py test:verbose
+
+# Unit tests only
+python test_runner.py test:unit
+
+# Integration tests only
+python test_runner.py test:integration
+
+# CI tests with coverage
+python test_runner.py test:ci
+
+# Watch mode for development
+python test_runner.py test:watch
 ```
 
-### Run Tests with Verbose Output
+#### Using Make Commands
 ```bash
-pytest -v
+# Quick test run
+make test
+
+# Verbose test output
+make test-verbose
+
+# Unit tests only
+make test-unit
+
+# Integration tests only
+make test-integration
+
+# CI tests with coverage
+make test-ci
+
+# Watch mode for development
+make test-watch
 ```
 
-### Run Tests with Coverage Report
+### 🔧 Direct Python Commands
+
+#### Run All Tests
 ```bash
-pytest --cov=.
+python -m pytest --tb=no -q
 ```
 
-### Run Specific Test File
+#### Run Tests with Verbose Output
 ```bash
-pytest test_signup_controller.py
+python -m pytest -v
 ```
 
-### Run Tests with Detailed Output
+#### Run Unit Tests Only
 ```bash
-pytest -v -s
+python -m pytest tests/ -v --tb=short -m "not integration and not slow"
 ```
 
-### Run Tests Using Python's Built-in unittest
+#### Run Tests with Coverage Report
 ```bash
-python -m unittest test_signup_controller.py
+python -m pytest --cov=. --cov-report=html --cov-report=term-missing
 ```
 
-### Run Tests and Generate HTML Coverage Report
+#### Run Specific Test File
 ```bash
-pytest --cov=. --cov-report=html
+python -m pytest tests/presentation/controllers/test_signup_controller.py
+```
+
+#### Run Tests in Watch Mode
+```bash
+python -m pytest-watch -- --tb=short
+```
+
+### 📊 Code Quality Commands
+
+#### Linting
+```bash
+# Critical errors only
+python test_runner.py lint
+# or
+make lint
+
+# Full linting
+python test_runner.py lint:all
+# or
+make lint-all
+```
+
+#### Code Formatting
+```bash
+# Format code
+python test_runner.py format
+# or
+make format
+
+# Check formatting
+python test_runner.py format:check
+# or
+make format-check
+```
+
+#### Type Checking
+```bash
+python test_runner.py type-check
+# or
+make type-check
+```
+
+#### Security Scan
+```bash
+python test_runner.py security
+# or
+make security
 ```
 
 ## 📝 Test Structure

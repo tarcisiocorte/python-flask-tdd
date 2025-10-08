@@ -1,0 +1,53 @@
+{
+  "name": "python-flask-tdd",
+  "version": "1.0.0",
+  "description": "Python Flask application with Test-Driven Development",
+  "scripts": {
+    "start": "python app.py",
+    "dev": "python -m flask run --debug --host=0.0.0.0 --port=5000",
+    "build": "echo 'No build step required for Python'",
+    "debug": "python -m debugpy --listen 0.0.0.0:5678 --wait-for-client app.py",
+    "up": "docker-compose up -d",
+    "down": "docker-compose down",
+    "check": "pip-check",
+    "test": "python -m pytest --tb=no -q",
+    "test:verbose": "python -m pytest -v",
+    "test:unit": "python -m pytest tests/ -v --tb=short",
+    "test:integration": "python -m pytest tests/integration/ -v --tb=short",
+    "test:staged": "python -m pytest --lf -x",
+    "test:ci": "python -m pytest --cov=. --cov-report=html --cov-report=xml --cov-report=term-missing",
+    "test:coveralls": "python -m pytest --cov=. --cov-report=xml && coveralls",
+    "test:watch": "python -m pytest-watch -- --tb=short",
+    "test:coverage": "python -m pytest --cov=. --cov-report=html --cov-report=term-missing",
+    "lint": "python -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics",
+    "lint:all": "python -m flake8 . --count --statistics",
+    "format": "python -m black .",
+    "format:check": "python -m black --check .",
+    "type-check": "python -m mypy .",
+    "security": "python -m bandit -r . -f json -o security-report.json",
+    "install": "pip install -r requirements.txt",
+    "install:dev": "pip install -r requirements-dev.txt",
+    "clean": "find . -type f -name '*.pyc' -delete && find . -type d -name '__pycache__' -delete",
+    "clean:all": "npm run clean && rm -rf .pytest_cache .coverage htmlcov/ dist/ build/ *.egg-info/"
+  },
+  "keywords": [
+    "python",
+    "flask",
+    "tdd",
+    "testing",
+    "clean-architecture"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.0"
+  },
+  "lint-staged": {
+    "*.py": [
+      "python -m black",
+      "python -m flake8",
+      "python -m pytest --lf -x"
+    ]
+  }
+}

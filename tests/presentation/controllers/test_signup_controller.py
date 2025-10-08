@@ -6,6 +6,7 @@ from domain.usecases.add_account import AddAccount, AddAccountModel
 from domain.models.account import AccountModel
 from protocols.email_validator import EmailValidator
 from errors.server_error import ServerError
+from errors import MissingParamError, InvalidParamError
 
 
 def make_email_validator_stub() -> EmailValidator:
@@ -43,7 +44,6 @@ class TestSignUpController(unittest.TestCase):
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 400)
-        from errors.missing_param_error import MissingParamError
         self.assertIsInstance(http_response.body, MissingParamError)
         self.assertEqual(str(http_response.body), "Missing param: name")
 
@@ -56,7 +56,6 @@ class TestSignUpController(unittest.TestCase):
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 400)
-        from errors.missing_param_error import MissingParamError
         self.assertIsInstance(http_response.body, MissingParamError)
         self.assertEqual(str(http_response.body), "Missing param: email")
 
@@ -69,7 +68,6 @@ class TestSignUpController(unittest.TestCase):
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 400)
-        from errors.missing_param_error import MissingParamError
         self.assertIsInstance(http_response.body, MissingParamError)
         self.assertEqual(str(http_response.body), "Missing param: password")
 
@@ -82,7 +80,6 @@ class TestSignUpController(unittest.TestCase):
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 400)
-        from errors.missing_param_error import MissingParamError
         self.assertIsInstance(http_response.body, MissingParamError)
         self.assertEqual(str(http_response.body), "Missing param: passwordConfirmation")
 
@@ -96,7 +93,6 @@ class TestSignUpController(unittest.TestCase):
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 400)
-        from errors.invalid_param_error import InvalidParamError
         self.assertIsInstance(http_response.body, InvalidParamError)
         self.assertEqual(str(http_response.body), "Invalid param: passwordConfirmation")
 
