@@ -6,24 +6,47 @@ A Python Flask application built using Test-Driven Development (TDD) principles 
 
 ```
 python-flask-tdd/
+├── data/                      # Data layer (infrastructure)
+│   ├── protocols/            # Data layer protocols
+│   │   ├── encrypter.py      # Encryption protocol
+│   │   └── add_account_repository.py  # Repository protocol
+│   └── usecases/             # Data usecases implementations
+│       └── add_account/      # Add account usecase
+│           ├── db_add_account.py
+│           ├── db_add_account_protocols.py
+│           └── in_memory_add_account_repository.py
 ├── domain/                    # Domain layer (business logic)
 │   ├── models/               # Domain entities
 │   │   └── account.py        # Account model
 │   └── usecases/             # Business use cases
-│       └── add_account.py    # Add account use case
-├── errors/                   # Custom error classes
-│   ├── missing_param_error.py
-│   └── server_error.py
+│       └── add_account.py    # Add account use case interface
 ├── presentation/             # Presentation layer
+│   ├── controllers/          # Controllers
+│   │   └── signup/           # Signup controller
+│   │       ├── signup.py
+│   │       └── signup_protocols.py
+│   ├── errors/               # Presentation errors
+│   │   ├── invalid_param_error.py
+│   │   ├── missing_param_error.py
+│   │   └── server_error.py
 │   ├── helpers/              # Helper functions
-│   └── signup.py             # Signup presentation logic
-├── protocols/                # Interface definitions
-│   ├── http.py               # HTTP request/response models
-│   └── signup_protocols.py   # Signup-related protocols
-├── signup.py                 # Main signup controller
-├── test_signup_controller.py # Unit tests for signup controller
-├── requirements.txt          # Python dependencies
-└── README.md                 # This file
+│   │   └── http_helper.py
+│   └── protocols/            # Presentation protocols
+│       ├── controller.py
+│       ├── email_validator.py
+│       └── http.py
+├── utils/                     # Utility adapters
+│   ├── email_validator_adapter.py
+│   └── bcrypt_encrypter.py
+├── tests/                     # Test files
+│   ├── data/
+│   ├── presentation/
+│   └── utils/
+├── app.py                     # Flask application
+├── conftest.py                # Pytest configuration
+├── test_runner.py              # Test runner script
+├── requirements.txt           # Python dependencies
+└── README.md                  # This file
 ```
 
 ## 🚀 Features
@@ -76,27 +99,53 @@ This project uses `pytest` for unit testing. You can run tests in multiple ways:
 ### 🚀 Quick Commands (Recommended)
 
 #### Using the Test Runner Script
+
+**First, make sure your virtual environment is activated:**
 ```bash
+source venv/bin/activate  # On macOS/Linux
+# or
+venv\Scripts\activate     # On Windows
+```
+
+Then run the tests:
+```bash
+# Unit tests only (recommended for unit testing)
+python test_runner.py test:unit
+
 # Quick test run (quiet mode)
 python test_runner.py test
 
 # Verbose test output
 python test_runner.py test:verbose
 
-# Unit tests only
-python test_runner.py test:unit
+# Tests with coverage report
+python test_runner.py test:coverage
+
+# CI tests with coverage (includes XML report)
+python test_runner.py test:ci
+
+# Run last failed tests
+python test_runner.py test:staged
+
+# Watch mode for development (auto-reruns on file changes)
+python test_runner.py test:watch
 
 # Integration tests only
 python test_runner.py test:integration
-
-# CI tests with coverage
-python test_runner.py test:ci
-
-# Watch mode for development
-python test_runner.py test:watch
 ```
 
+**Note:** The test runner script requires the virtual environment to be activated to access pytest and other dependencies.
+
 #### Using Make Commands
+
+**Make sure your virtual environment is activated first!**
+```bash
+source venv/bin/activate  # On macOS/Linux
+# or
+venv\Scripts\activate     # On Windows
+```
+
+Then run:
 ```bash
 # Quick test run
 make test
@@ -104,7 +153,7 @@ make test
 # Verbose test output
 make test-verbose
 
-# Unit tests only
+# Unit tests only (recommended for unit testing)
 make test-unit
 
 # Integration tests only
@@ -115,38 +164,50 @@ make test-ci
 
 # Watch mode for development
 make test-watch
+
+# Tests with coverage report
+make test-coverage
 ```
 
 ### 🔧 Direct Python Commands
 
+**Make sure your virtual environment is activated first!**
+
 #### Run All Tests
 ```bash
-python -m pytest --tb=no -q
+pytest tests/ -v
 ```
 
 #### Run Tests with Verbose Output
 ```bash
-python -m pytest -v
+pytest tests/ -v
 ```
 
 #### Run Unit Tests Only
 ```bash
-python -m pytest tests/ -v --tb=short -m "not integration and not slow"
+pytest tests/ -v --tb=short
 ```
 
 #### Run Tests with Coverage Report
 ```bash
-python -m pytest --cov=. --cov-report=html --cov-report=term-missing
+pytest tests/ --cov=. --cov-report=html --cov-report=term-missing
 ```
 
 #### Run Specific Test File
 ```bash
-python -m pytest tests/presentation/controllers/test_signup_controller.py
+# Signup controller tests
+pytest tests/presentation/controllers/signup/test_signup.py -v
+
+# DbAddAccount tests
+pytest tests/data/usecases/add_account/test_db_add_account.py -v
+
+# Email validator tests
+pytest tests/utils/test_email_validator_adapter.py -v
 ```
 
 #### Run Tests in Watch Mode
 ```bash
-python -m pytest-watch -- --tb=short
+pytest-watch -- --tb=short
 ```
 
 ### 📊 Code Quality Commands
