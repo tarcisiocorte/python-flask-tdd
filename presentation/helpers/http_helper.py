@@ -1,5 +1,5 @@
-from protocols.http import HttpResponse
-from errors.server_error import ServerError
+from presentation.protocols.http import HttpResponse
+from presentation.errors.server_error import ServerError
 
 
 def bad_request(error: Exception) -> HttpResponse:
