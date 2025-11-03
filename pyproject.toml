@@ -97,7 +97,7 @@ extend-exclude = '''
 profile = "black"
 multi_line_output = 3
 line_length = 88
-known_first_party = ["domain", "infrastructure", "presentation", "protocols", "errors"]
+known_first_party = ["domain", "data", "presentation", "utils"]
 
 [tool.mypy]
 python_version = "3.8"
