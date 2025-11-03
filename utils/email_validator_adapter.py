@@ -1,5 +1,5 @@
 from email_validator import validate_email, EmailNotValidError
-from protocols.email_validator import EmailValidator
+from presentation.protocols.email_validator import EmailValidator
 
 
 class EmailValidatorAdapter(EmailValidator):
@@ -9,3 +9,4 @@ class EmailValidatorAdapter(EmailValidator):
             return True
         except EmailNotValidError:
             return False
+
