@@ -1,9 +1,10 @@
 import uuid
-from domain.usecases.add_account import AddAccount, AddAccountModel
+from data.protocols.add_account_repository import AddAccountRepository
+from domain.usecases.add_account import AddAccountModel
 from domain.models.account import AccountModel
 
 
-class AddAccountRepository(AddAccount):
+class InMemoryAddAccountRepository(AddAccountRepository):
     def __init__(self):
         # In a real application, this would be a database
         self.accounts = []
@@ -24,3 +25,4 @@ class AddAccountRepository(AddAccount):
         self.accounts.append(new_account)
         
         return new_account
+
