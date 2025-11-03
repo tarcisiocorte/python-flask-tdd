@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
-from presentation.controllers.signup_controller import SignUpController
-from presentation.helpers.email_validator_adapter import EmailValidatorAdapter
-from infrastructure.add_account_repository import AddAccountRepository
-from protocols.http import HttpRequest
+from presentation.controllers.signup.signup import SignUpController
+from utils.email_validator_adapter import EmailValidatorAdapter
+from data.usecases.add_account.db_add_account import DbAddAccount
+from data.usecases.add_account.in_memory_add_account_repository import InMemoryAddAccountRepository
+from utils.bcrypt_encrypter import BcryptEncrypter
+from presentation.protocols.http import HttpRequest
 import json
 
 
@@ -11,8 +13,10 @@ def create_app():
     
     # Initialize dependencies
     email_validator = EmailValidatorAdapter()
-    add_account_repository = AddAccountRepository()
-    signup_controller = SignUpController(email_validator, add_account_repository)
+    encrypter = BcryptEncrypter()
+    add_account_repository = InMemoryAddAccountRepository()
+    add_account = DbAddAccount(encrypter, add_account_repository)
+    signup_controller = SignUpController(email_validator, add_account)
     
     @app.route('/signup', methods=['POST'])
     def signup():
