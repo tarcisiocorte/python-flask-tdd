@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from presentation.helpers.email_validator_adapter import EmailValidatorAdapter
+from utils.email_validator_adapter import EmailValidatorAdapter
 
 
 def make_sut() -> EmailValidatorAdapter:
@@ -41,7 +41,7 @@ class TestEmailValidatorAdapter(unittest.TestCase):
     def test_should_return_false_if_validator_returns_false(self):
         sut = make_sut()
         
-        with patch('presentation.helpers.email_validator_adapter.validate_email') as mock_validate:
+        with patch('utils.email_validator_adapter.validate_email') as mock_validate:
             from email_validator import EmailNotValidError
             mock_validate.side_effect = EmailNotValidError('Validation failed')
             is_valid = sut.is_valid('invalid_email@mail.com')
@@ -50,14 +50,14 @@ class TestEmailValidatorAdapter(unittest.TestCase):
     def test_should_return_true_if_validator_returns_true(self):
         sut = make_sut()
         
-        with patch('presentation.helpers.email_validator_adapter.validate_email') as mock_validate:
+        with patch('utils.email_validator_adapter.validate_email') as mock_validate:
             mock_validate.return_value = True
             is_valid = sut.is_valid('valid_email@mail.com')
             self.assertTrue(is_valid)
 
     def test_should_call_validator_with_correct_email(self):
         sut = make_sut()
-        with patch('presentation.helpers.email_validator_adapter.validate_email') as mock_validate:
+        with patch('utils.email_validator_adapter.validate_email') as mock_validate:
             sut.is_valid('any_email@mail.com')
             mock_validate.assert_called_once_with('any_email@mail.com', check_deliverability=False)
 

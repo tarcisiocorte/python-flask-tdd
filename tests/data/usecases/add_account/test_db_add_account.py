@@ -1,9 +1,11 @@
 import unittest
 import asyncio
-from unittest.mock import AsyncMock, patch
-from infrastructure.db_add_account import DbAddAccount
+from unittest.mock import AsyncMock, patch, Mock
+from data.usecases.add_account.db_add_account import DbAddAccount
 from domain.usecases.add_account import AddAccountModel
-from protocols.encrypter import Encrypter
+from domain.models.account import AccountModel
+from data.protocols.encrypter import Encrypter
+from data.protocols.add_account_repository import AddAccountRepository
 from typing import NamedTuple
 
 
@@ -12,17 +14,30 @@ class EncrypterStub(Encrypter):
         return "hashed_password"
 
 
+class AddAccountRepositoryStub(AddAccountRepository):
+    async def add(self, account: AddAccountModel) -> AccountModel:
+        return AccountModel(
+            id="valid_id",
+            name=account.name,
+            email=account.email,
+            password=account.password
+        )
+
+
 class SutTypes(NamedTuple):
     sut: DbAddAccount
     encrypter_stub: EncrypterStub
+    add_account_repository_stub: AddAccountRepositoryStub
 
 
 def make_sut() -> SutTypes:
     encrypter_stub = EncrypterStub()
-    sut = DbAddAccount(encrypter_stub)
+    add_account_repository_stub = AddAccountRepositoryStub()
+    sut = DbAddAccount(encrypter_stub, add_account_repository_stub)
     return SutTypes(
         sut=sut,
-        encrypter_stub=encrypter_stub
+        encrypter_stub=encrypter_stub,
+        add_account_repository_stub=add_account_repository_stub
     )
 
 

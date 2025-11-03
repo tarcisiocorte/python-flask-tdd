@@ -1,12 +1,13 @@
 import unittest
-from unittest.mock import Mock
-from presentation.controllers.signup_controller import SignUpController
-from protocols.http import HttpRequest
+import asyncio
+from unittest.mock import Mock, AsyncMock
+from presentation.controllers.signup.signup import SignUpController
+from presentation.protocols.http import HttpRequest
 from domain.usecases.add_account import AddAccount, AddAccountModel
 from domain.models.account import AccountModel
-from protocols.email_validator import EmailValidator
-from errors.server_error import ServerError
-from errors import MissingParamError, InvalidParamError
+from presentation.protocols.email_validator import EmailValidator
+from presentation.errors.server_error import ServerError
+from presentation.errors import MissingParamError, InvalidParamError
 
 
 def make_email_validator_stub() -> EmailValidator:
@@ -18,7 +19,7 @@ def make_email_validator_stub() -> EmailValidator:
 
 def make_add_account_stub() -> AddAccount:
     class AddAccountStub(AddAccount):
-        def add(self, account: AddAccountModel) -> AccountModel:
+        async def add(self, account: AddAccountModel) -> AccountModel:
             return AccountModel(
                 id="valid_id",
                 name="valid_name",
@@ -115,7 +116,7 @@ class TestSignUpController(unittest.TestCase):
         email_validator_stub = make_email_validator_stub()
         
         class AddAccountStubWithError(AddAccount):
-            def add(self, account: AddAccountModel) -> AccountModel:
+            async def add(self, account: AddAccountModel) -> AccountModel:
                 raise Exception("Database error")
         
         add_account_stub = AddAccountStubWithError()
@@ -133,12 +134,14 @@ class TestSignUpController(unittest.TestCase):
     def test_should_call_add_account_with_correct_values(self):
         email_validator_stub = make_email_validator_stub()
         add_account_spy = Mock(spec=AddAccount)
-        add_account_spy.add.return_value = AccountModel(
-            id="valid_id",
-            name="valid_name",
-            email="valid_email@mail.com",
-            password="valid_password"
-        )
+        async def mock_add(account):
+            return AccountModel(
+                id="valid_id",
+                name="valid_name",
+                email="valid_email@mail.com",
+                password="valid_password"
+            )
+        add_account_spy.add = AsyncMock(side_effect=mock_add)
         sut = SignUpController(email_validator_stub, add_account_spy)
         http_request = HttpRequest({
             "name": "any_name",
