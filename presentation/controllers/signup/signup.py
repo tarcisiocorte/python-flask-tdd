@@ -1,5 +1,8 @@
-from protocols.signup_protocols import HttpResponse, HttpRequest, Controller, EmailValidator, AddAccount, AddAccountModel
-from errors import MissingParamError, InvalidParamError
+import asyncio
+from presentation.protocols import HttpRequest, HttpResponse, Controller
+from presentation.protocols.email_validator import EmailValidator
+from domain.usecases.add_account import AddAccount, AddAccountModel
+from presentation.errors import MissingParamError, InvalidParamError
 from presentation.helpers.http_helper import bad_request, server_error, ok
 
 
@@ -27,13 +30,14 @@ class SignUpController(Controller):
             if not is_valid:
                 return bad_request(InvalidParamError('email'))
 
-            account = self.add_account.add(AddAccountModel(
+            account = asyncio.run(self.add_account.add(AddAccountModel(
                 name=name,
                 email=email,
                 password=password
-            ))
+            )))
 
             return ok(account)
 
         except Exception:
             return server_error()
+
