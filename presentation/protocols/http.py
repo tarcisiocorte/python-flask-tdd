@@ -11,3 +11,4 @@ class HttpResponse:
 class HttpRequest:
     def __init__(self, body: Optional[Dict[str, Any]] = None):
         self.body = body or {}
+
