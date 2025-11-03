@@ -74,6 +74,27 @@ class TestDbAddAccount(unittest.TestCase):
                 asyncio.run(sut.add(account_data))
 
             encrypt_spy.assert_called_once_with("valid_password")
+            
+    def test_should_call_add_account_repository_with_correct_values(self):
+        sut_types = make_sut()
+        sut = sut_types.sut
+        add_account_repository_stub = sut_types.add_account_repository_stub
+
+        with patch.object(add_account_repository_stub, 'add', new_callable=AsyncMock) as add_spy:
+            account_data = AddAccountModel(
+                name="valid_name",
+                email="valid_email",
+                password="valid_password"
+            )
+
+            asyncio.run(sut.add(account_data))
+
+            expected_account_data = AddAccountModel(
+                name="valid_name",
+                email="valid_email",
+                password="hashed_password"
+            )
+            add_spy.assert_called_once_with(expected_account_data)   
 
 
 if __name__ == '__main__':
