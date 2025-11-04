@@ -43,6 +43,18 @@ class TestBcryptAdapter(unittest.TestCase):
             hash_result = asyncio.run(sut.encrypt('any_value'))
             
             self.assertEqual(hash_result, 'hash')
+            
+    def test_should_throw_if_bcrypt_throws(self):
+        salt = 12
+        sut = make_sut(salt)
+        
+        with patch('infra.criptography.bcrypt_adapter.bcrypt') as bcrypt_mock:
+            bcrypt_mock.gensalt.side_effect = Exception
+            with self.assertRaises(Exception):
+                asyncio.run(sut.encrypt('any_value'))
+            
+            bcrypt_mock.gensalt.assert_called_once_with(rounds=salt)
+            bcrypt_mock.hashpw.assert_not_called()
 
 
 if __name__ == '__main__':
