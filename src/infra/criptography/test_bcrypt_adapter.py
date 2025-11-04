@@ -30,6 +30,20 @@ class TestBcryptAdapter(unittest.TestCase):
                 bcrypt_mock.gensalt.return_value
             )
 
+    def test_should_return_a_hash_on_success(self):
+        salt = 12
+        sut = make_sut(salt)
+        
+        with patch('infra.criptography.bcrypt_adapter.bcrypt') as bcrypt_mock:
+            # Mock gensalt to return a bytes salt
+            bcrypt_mock.gensalt.return_value = b'$2b$12$test_salt_value_here'
+            # Mock hashpw to return a bytes hash
+            bcrypt_mock.hashpw.return_value = b'hash'
+            
+            hash_result = asyncio.run(sut.encrypt('any_value'))
+            
+            self.assertEqual(hash_result, 'hash')
+
 
 if __name__ == '__main__':
     unittest.main()
