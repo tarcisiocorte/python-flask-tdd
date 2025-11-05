@@ -61,6 +61,7 @@ python-flask-tdd/
 
 - Python 3.8 or higher
 - pip (Python package installer)
+- Docker and Docker Compose (for PostgreSQL database)
 
 ## 🛠️ Installation
 
@@ -91,6 +92,94 @@ python-flask-tdd/
    ```bash
    pip install -r requirements.txt
    ```
+
+5. **Set up PostgreSQL database** (optional but recommended):
+   
+   The project uses Docker Compose to run PostgreSQL in a container with a persistent volume. This ensures your data is preserved even if the container is deleted.
+   
+   **Start the PostgreSQL container:**
+   ```bash
+   make db-up
+   # or
+   docker-compose up -d postgres
+   ```
+   
+   **Check PostgreSQL logs:**
+   ```bash
+   make db-logs
+   # or
+   docker-compose logs -f postgres
+   ```
+   
+   **Access PostgreSQL shell:**
+   ```bash
+   make db-shell
+   # or
+   docker-compose exec postgres psql -U flask_user -d flask_db
+   ```
+   
+   **Stop the PostgreSQL container (data is preserved):**
+   ```bash
+   make db-down
+   # or
+   docker-compose stop postgres
+   ```
+   
+   **Restart the PostgreSQL container:**
+   ```bash
+   make db-restart
+   # or
+   docker-compose restart postgres
+   ```
+   
+   **Remove container and volume (WARNING: deletes all data):**
+   ```bash
+   make db-clean
+   # or
+   docker-compose down -v
+   ```
+   
+   **Default Database Configuration:**
+   - User: `flask_user`
+   - Password: `flask_password`
+   - Database: `flask_db`
+   - Port: `5432`
+   
+   You can customize these values by creating a `.env` file in the project root:
+   ```env
+   POSTGRES_USER=your_user
+   POSTGRES_PASSWORD=your_password
+   POSTGRES_DB=your_database
+   POSTGRES_PORT=5432
+   POSTGRES_HOST=localhost
+   ```
+
+## 🗄️ Database Setup
+
+This project uses PostgreSQL as the database. The database runs in a Docker container with a managed volume for data persistence.
+
+### Volume Management
+
+The PostgreSQL data is stored in a Docker volume named `postgres_data`. This volume persists even when the container is stopped or deleted, ensuring your data is safe.
+
+**To view Docker volumes:**
+```bash
+docker volume ls
+```
+
+**To inspect the PostgreSQL volume:**
+```bash
+docker volume inspect python-flask-tdd_postgres_data
+```
+
+**To backup the volume (optional):**
+```bash
+# Create a backup
+docker run --rm -v python-flask-tdd_postgres_data:/data -v $(pwd):/backup alpine tar czf /backup/postgres_backup.tar.gz -C /data .
+
+# Restore from backup
+docker run --rm -v python-flask-tdd_postgres_data:/data -v $(pwd):/backup alpine tar xzf /backup/postgres_backup.tar.gz -C /data
+```
 
 ## 🧪 Running Unit Tests
 
