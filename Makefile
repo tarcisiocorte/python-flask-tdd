@@ -1,7 +1,7 @@
 # Python Flask TDD Makefile
 # Provides easy commands for testing and development
 
-.PHONY: help test test-verbose test-unit test-integration test-staged test-ci test-watch test-coverage lint lint-all format format-check type-check security start dev debug install install-dev clean clean-all
+.PHONY: help test test-verbose test-unit test-integration test-staged test-ci test-watch test-coverage lint lint-all format format-check type-check security start dev debug install install-dev clean clean-all db-up db-down db-restart db-logs db-shell db-clean
 
 # Default target
 help:
@@ -33,6 +33,14 @@ help:
 	@echo "  install-dev    - Install development dependencies"
 	@echo "  clean          - Clean Python cache files"
 	@echo "  clean-all      - Clean all generated files"
+	@echo ""
+	@echo "Database Commands:"
+	@echo "  db-up          - Start PostgreSQL container"
+	@echo "  db-down        - Stop PostgreSQL container"
+	@echo "  db-restart     - Restart PostgreSQL container"
+	@echo "  db-logs        - View PostgreSQL logs"
+	@echo "  db-shell       - Access PostgreSQL shell"
+	@echo "  db-clean       - Remove PostgreSQL container and volume (WARNING: deletes data)"
 	@echo ""
 	@echo "Usage: make <command>"
 	@echo "Example: make test-unit"
@@ -103,3 +111,35 @@ clean:
 
 clean-all: clean
 	rm -rf .pytest_cache .coverage htmlcov/ dist/ build/ *.egg-info/ security-report.json
+
+# Database commands
+db-up:
+	docker-compose up -d postgres
+	@echo "PostgreSQL is starting. Check status with: make db-logs"
+
+db-down:
+	docker-compose stop postgres
+	@echo "PostgreSQL container stopped. Data is preserved in volume."
+
+db-restart:
+	docker-compose restart postgres
+	@echo "PostgreSQL container restarted."
+
+db-logs:
+	docker-compose logs -f postgres
+
+db-shell:
+	@POSTGRES_USER=$${POSTGRES_USER:-flask_user}; \
+	POSTGRES_DB=$${POSTGRES_DB:-flask_db}; \
+	docker-compose exec postgres psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+
+db-clean:
+	@echo "WARNING: This will delete the PostgreSQL container and all data!"
+	@read -p "Are you sure? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		docker-compose down -v; \
+		echo "PostgreSQL container and volume removed."; \
+	else \
+		echo "Operation cancelled."; \
+	fi
