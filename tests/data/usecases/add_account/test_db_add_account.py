@@ -118,6 +118,25 @@ class TestDbAddAccount(unittest.TestCase):
             self.assertEqual(account.email, "valid_email")
             self.assertEqual(account.password, "hashed_password")
 
+    def test_should_throw_if_add_account_repository_throws(self):
+        sut_types = make_sut()
+        sut = sut_types.sut
+        add_account_repository_stub = sut_types.add_account_repository_stub
+
+        with patch.object(add_account_repository_stub, 'add', side_effect=Exception) as add_spy:
+            account_data = AddAccountModel(
+                name="valid_name",
+                email="valid_email",
+                password="valid_password"
+            )
+            with self.assertRaises(Exception):
+                asyncio.run(sut.add(account_data))
+            add_spy.assert_called_once_with(AddAccountModel(
+                name="valid_name",
+                email="valid_email",
+                password="hashed_password"
+            ))
+
 
 if __name__ == '__main__':
     unittest.main()
