@@ -1,0 +1,2 @@
+"""MongoDB infrastructure module."""
+
