@@ -17,6 +17,26 @@ services:
       retries: 5
     restart: unless-stopped
 
+  mongodb:
+    image: mongo:7-jammy
+    container_name: flask-tdd-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-flask_user}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-flask_password}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-flask_db}
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+    driver: local
+  mongodb_data:
     driver: local
