@@ -12,6 +12,7 @@ help:
 	@echo "  test-verbose   - Run tests with verbose output"
 	@echo "  test-unit      - Run unit tests only"
 	@echo "  test-integration - Run integration tests only"
+	@echo "  test-middleware - Run middleware tests only"
 	@echo "  test-staged    - Run last failed tests"
 	@echo "  test-ci        - Run CI tests with coverage"
 	@echo "  test-watch     - Run tests in watch mode"
@@ -26,7 +27,8 @@ help:
 	@echo "  security       - Run security scan"
 	@echo ""
 	@echo "Development Commands:"
-	@echo "  start          - Start the Flask application"
+	@echo "  start          - Start the Flask application (new structure)"
+	@echo "  start-legacy   - Start using legacy app.py"
 	@echo "  dev            - Start development server"
 	@echo "  debug          - Start debug mode"
 	@echo "  install        - Install dependencies"
@@ -57,6 +59,9 @@ test-unit:
 
 test-integration:
 	python -m pytest tests/ -v --tb=short -m "integration"
+
+test-middleware:
+	python -m pytest tests/main/middlewares/ -v --tb=short
 
 test-staged:
 	python -m pytest --lf -x
@@ -91,13 +96,16 @@ security:
 
 # Development commands
 start:
+	python main/server.py
+
+start-legacy:
 	python app.py
 
 dev:
 	python -m flask run --debug --host=0.0.0.0 --port=5000
 
 debug:
-	python -m debugpy --listen 0.0.0.0:5678 --wait-for-client app.py
+	python -m debugpy --listen 0.0.0.0:5678 --wait-for-client main/server.py
 
 install:
 	pip install -r requirements.txt
