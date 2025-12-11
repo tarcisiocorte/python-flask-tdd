@@ -56,7 +56,7 @@ test-unit:
 	python -m pytest tests/ -v --tb=short -m "not integration and not slow"
 
 test-integration:
-	python -m pytest tests/integration/ -v --tb=short
+	python -m pytest tests/ -v --tb=short -m "integration"
 
 test-staged:
 	python -m pytest --lf -x
