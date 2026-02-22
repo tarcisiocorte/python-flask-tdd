@@ -10,4 +10,7 @@ class BcryptAdapter(Encrypter):
         salt = bcrypt.gensalt(rounds=self._salt)
         hashed = bcrypt.hashpw(value.encode('utf-8'), salt)
         return hashed.decode('utf-8')
+    
+    async def compare(self, value: str, hash: str) -> bool:
+        return bcrypt.checkpw(value.encode('utf-8'),hash.encode('utf-8'))
 
