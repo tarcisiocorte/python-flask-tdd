@@ -1,7 +1,7 @@
 import unittest
 import asyncio
 from unittest.mock import patch, MagicMock
-from infra.criptography.bcrypt_adapter import BcryptAdapter
+from infra.cryptography.bcrypt_adapter import BcryptAdapter
 
 
 def make_sut(salt: int = 12) -> BcryptAdapter:
@@ -13,7 +13,7 @@ class TestBcryptAdapter(unittest.TestCase):
         salt = 12
         sut = make_sut(salt)
         
-        with patch('infra.criptography.bcrypt_adapter.bcrypt') as bcrypt_mock:
+        with patch('infra.cryptography.bcrypt_adapter.bcrypt') as bcrypt_mock:
             # Mock gensalt to return a bytes salt
             bcrypt_mock.gensalt.return_value = b'$2b$12$test_salt_value_here'
             # Mock hashpw to return a bytes hash
@@ -34,7 +34,7 @@ class TestBcryptAdapter(unittest.TestCase):
         salt = 12
         sut = make_sut(salt)
         
-        with patch('infra.criptography.bcrypt_adapter.bcrypt') as bcrypt_mock:
+        with patch('infra.cryptography.bcrypt_adapter.bcrypt') as bcrypt_mock:
             # Mock gensalt to return a bytes salt
             bcrypt_mock.gensalt.return_value = b'$2b$12$test_salt_value_here'
             # Mock hashpw to return a bytes hash
@@ -48,13 +48,27 @@ class TestBcryptAdapter(unittest.TestCase):
         salt = 12
         sut = make_sut(salt)
         
-        with patch('infra.criptography.bcrypt_adapter.bcrypt') as bcrypt_mock:
+        with patch('infra.cryptography.bcrypt_adapter.bcrypt') as bcrypt_mock:
             bcrypt_mock.gensalt.side_effect = Exception
             with self.assertRaises(Exception):
                 asyncio.run(sut.encrypt('any_value'))
             
             bcrypt_mock.gensalt.assert_called_once_with(rounds=salt)
             bcrypt_mock.hashpw.assert_not_called()
+            
+    def test_should_call_bcrypt_compare_with_correct_values(self):
+        salt = 12
+        sut = make_sut(salt)
+        
+        with patch('infra.cryptography.bcrypt_adapter.bcrypt.checkpw') as checkpw_mock:
+            checkpw_mock.return_value = True
+            
+            result = asyncio.run(sut.compare('any_value', 'hash'))
+            
+            checkpw_mock.assert_called_once_with('any_value'.encode('utf-8'), 'hash'.encode('utf-8'))
+            
+            self.assertTrue(result)
+            
 
 
 if __name__ == '__main__':
