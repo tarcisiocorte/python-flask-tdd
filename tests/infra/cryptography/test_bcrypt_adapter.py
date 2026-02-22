@@ -69,6 +69,18 @@ class TestBcryptAdapter(unittest.TestCase):
             
             self.assertTrue(result)
             
+    def test_should_throw_if_compare_throws(self):
+        salt = 12
+        sut = make_sut(salt)
+        
+        with patch('infra.cryptography.bcrypt_adapter.bcrypt.checkpw') as checkpw_mock:
+            checkpw_mock.side_effect = Exception('Bcrypt internal error')
+            
+            with self.assertRaises(Exception):
+                asyncio.run(sut.compare('any_value', 'any_hash'))
+                
+            checkpw_mock.assert_called_once_with('any_value'.encode('utf-8'), 'any_hash'.encode('utf-8'))
+            
 
 
 if __name__ == '__main__':
