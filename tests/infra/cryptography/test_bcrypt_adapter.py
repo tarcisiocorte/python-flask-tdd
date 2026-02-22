@@ -56,7 +56,7 @@ class TestBcryptAdapter(unittest.TestCase):
             bcrypt_mock.gensalt.assert_called_once_with(rounds=salt)
             bcrypt_mock.hashpw.assert_not_called()
             
-    def test_should_call_bcrypt_compare_with_correct_values(self):
+    def test_should_return_true_when_compare_succeeds(self):
         salt = 12
         sut = make_sut(salt)
         
