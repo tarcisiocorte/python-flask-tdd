@@ -69,6 +69,17 @@ class TestBcryptAdapter(unittest.TestCase):
             
             self.assertTrue(result)
             
+    def test_should_return_false_when_compare_fails(self):
+        salt = 12
+        sut = make_sut(salt)
+        
+        with patch('infra.cryptography.bcrypt_adapter.bcrypt.checkpw') as checkpw_mock:
+            checkpw_mock.return_value = False
+            
+            result = asyncio.run(sut.compare('wrong_value', 'hash'))
+            
+            self.assertFalse(result)
+            
     def test_should_throw_if_compare_throws(self):
         salt = 12
         sut = make_sut(salt)
