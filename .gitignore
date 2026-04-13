@@ -5,7 +5,9 @@ __pycache__/
 
 # Virtual environment
 venv/
+.venv/
 .env/
+*.egg-info/
 
 # Flask instance folder
 instance/
