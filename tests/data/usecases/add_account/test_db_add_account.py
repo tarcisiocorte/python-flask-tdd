@@ -13,6 +13,9 @@ class EncrypterStub(Encrypter):
     async def encrypt(self, value: str) -> str:
         return "hashed_password"
 
+    async def compare(self, value: str, hash: str) -> bool:
+        return value == hash
+
 
 class AddAccountRepositoryStub(AddAccountRepository):
     async def add(self, account: AddAccountModel) -> AccountModel:

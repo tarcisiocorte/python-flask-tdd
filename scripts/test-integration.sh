@@ -2,4 +2,4 @@
 
 # Integration test script - runs integration tests
 echo "Running integration tests..."
-python -m pytest tests/integration/ -v --tb=short
+python3 -m pytest tests/ -v --tb=short -m "integration"

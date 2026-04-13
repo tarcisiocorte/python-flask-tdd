@@ -3,6 +3,8 @@
 
 .PHONY: help test test-verbose test-unit test-integration test-staged test-ci test-watch test-coverage lint lint-all format format-check type-check security start dev debug install install-dev clean clean-all db-up db-down db-restart db-logs db-shell db-clean
 
+PYTHON ?= $(shell if [ -x ./venv/bin/python3 ]; then echo ./venv/bin/python3; elif [ -x ./.venv/bin/python ]; then echo ./.venv/bin/python; else echo python3; fi)
+
 # Default target
 help:
 	@echo "Python Flask TDD - Available Commands:"
@@ -49,31 +51,31 @@ help:
 
 # Testing commands
 test:
-	python -m pytest --tb=no -q
+	$(PYTHON) -m pytest --tb=no -q
 
 test-verbose:
-	python -m pytest -v
+	$(PYTHON) -m pytest -v
 
 test-unit:
-	python -m pytest tests/ -v --tb=short -m "not integration and not slow"
+	$(PYTHON) -m pytest tests/ -v --tb=short -m "not integration and not slow"
 
 test-integration:
-	python -m pytest tests/ -v --tb=short -m "integration"
+	$(PYTHON) -m pytest tests/ -v --tb=short -m "integration"
 
 test-middleware:
-	python -m pytest tests/main/middlewares/ -v --tb=short
+	$(PYTHON) -m pytest tests/main/middlewares/ -v --tb=short
 
 test-staged:
-	python -m pytest --lf -x
+	$(PYTHON) -m pytest --lf -x
 
 test-ci:
-	python -m pytest --cov=. --cov-report=html --cov-report=xml --cov-report=term-missing
+	$(PYTHON) -m pytest --cov=. --cov-report=html --cov-report=xml --cov-report=term-missing
 
 test-watch:
-	python -m pytest-watch -- --tb=short
+	$(PYTHON) -m pytest-watch -- --tb=short
 
 test-coverage:
-	python -m pytest --cov=. --cov-report=html --cov-report=term-missing
+	$(PYTHON) -m pytest --cov=. --cov-report=html --cov-report=term-missing
 
 # Code quality commands
 lint:
