@@ -1,24 +1,28 @@
+from __future__ import annotations
+
 from domain.usecases.save_survey_result import SaveSurveyResult, SaveSurveyResultModel
 from domain.models.survey_result import SurveyResultModel
-from data.protocols.save_survey_result_repository import SaveSurveyResultRepository
+from data.protocols.save_survey_result_repository import (
+    LoadSurveyResultRepository,
+    SaveSurveyResultRepository,
+)
 
 
 class DbSaveSurveyResult(SaveSurveyResult):
-    """Database implementation of SaveSurveyResult use case"""
-    
-    def __init__(self, save_survey_result_repository: SaveSurveyResultRepository):
+    def __init__(
+        self,
+        save_survey_result_repository: SaveSurveyResultRepository,
+        load_survey_result_repository: LoadSurveyResultRepository | None = None,
+    ):
         self.save_survey_result_repository = save_survey_result_repository
-    
-    async def save(self, data: SaveSurveyResultModel) -> SurveyResultModel:
-        """
-        Saves a survey result using the repository
-        
-        Args:
-            data: Survey result data to save
-            
-        Returns:
-            The saved survey result
-        """
-        survey_result = await self.save_survey_result_repository.save(data)
-        return survey_result
+        self.load_survey_result_repository = load_survey_result_repository or save_survey_result_repository
 
+    async def save(self, data: SaveSurveyResultModel) -> SurveyResultModel:
+        saved = await self.save_survey_result_repository.save(data)
+        if hasattr(self.load_survey_result_repository, "load_by_survey_id"):
+            loaded = await self.load_survey_result_repository.load_by_survey_id(
+                data.survey_id, data.account_id
+            )
+            if loaded:
+                return loaded
+        return saved

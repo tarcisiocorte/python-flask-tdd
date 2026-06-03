@@ -3,6 +3,9 @@ from data.protocols.encrypter import Encrypter
 
 
 class BcryptEncrypter(Encrypter):
+    async def hash(self, value: str) -> str:
+        return await self.encrypt(value)
+
     async def encrypt(self, value: str) -> str:
         # Generate salt and hash the password
         salt = bcrypt.gensalt()
@@ -11,4 +14,3 @@ class BcryptEncrypter(Encrypter):
 
     async def compare(self, value: str, hash: str) -> bool:
         return bcrypt.checkpw(value.encode('utf-8'), hash.encode('utf-8'))
-
