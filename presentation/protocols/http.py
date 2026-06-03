@@ -9,6 +9,14 @@ class HttpResponse:
 
 
 class HttpRequest:
-    def __init__(self, body: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        body: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
+        account_id: Optional[str] = None,
+    ):
         self.body = body or {}
-
+        self.headers = headers or {}
+        self.params = params or {}
+        self.account_id = account_id

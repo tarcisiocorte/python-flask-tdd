@@ -6,4 +6,4 @@ class AccountModel:
     id: str
     name: str
     email: str
-    password: str 
+    password: str = ""
