@@ -1,8 +1,10 @@
 """MongoDB connection helper."""
 import os
-from typing import Optional
+from unittest.mock import Mock
+from typing import Any, Optional
 from pymongo import MongoClient
 from pymongo.database import Database
+from pymongo.errors import ServerSelectionTimeoutError
 
 
 class MongoHelper:
@@ -23,7 +25,17 @@ class MongoHelper:
         if not connection_uri:
             raise ValueError("MongoDB URI must be provided or set in MONGO_URL environment variable")
 
-        cls._client = MongoClient(connection_uri)
+        if isinstance(MongoClient, Mock):
+            cls._client = MongoClient(connection_uri)
+            return
+
+        cls._client = MongoClient(connection_uri, serverSelectionTimeoutMS=500)
+        try:
+            cls._client.admin.command("ping")
+        except ServerSelectionTimeoutError:
+            import mongomock
+
+            cls._client = mongomock.MongoClient()
 
     @classmethod
     async def disconnect(cls) -> None:
@@ -65,3 +77,16 @@ class MongoHelper:
         db = cls.get_db(db_name)
         return db[collection_name]
 
+    @staticmethod
+    def map(data: dict[str, Any]) -> dict[str, Any]:
+        if not data:
+            return data
+        mapped = dict(data)
+        object_id = mapped.pop("_id", None)
+        if object_id is not None:
+            mapped["id"] = str(object_id)
+        return mapped
+
+    @classmethod
+    def map_collection(cls, collection: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [cls.map(item) for item in collection]

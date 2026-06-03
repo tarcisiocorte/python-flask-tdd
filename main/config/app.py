@@ -1,73 +1,67 @@
 """Flask application factory and configuration."""
+import os
+
 from flask import Flask, request, jsonify
-from main.config.middlewares import setup_middlewares
-from presentation.controllers.signup.signup import SignUpController
-from utils.email_validator_adapter import EmailValidatorAdapter
-from data.usecases.add_account.db_add_account import DbAddAccount
+from data.usecases import DbAddAccount, DbAuthentication
 from data.usecases.add_account.in_memory_add_account_repository import InMemoryAddAccountRepository
+from infra.cryptography import JwtAdapter
+from main.adapters import adapt_route
+from main.config.middlewares import setup_middlewares
+from presentation.controllers import LoginController
+from presentation.controllers.signup.signup import SignUpController
 from utils.bcrypt_encrypter import BcryptEncrypter
-from presentation.protocols.http import HttpRequest
+from utils.email_validator_adapter import EmailValidatorAdapter
+from validation import (
+    CompareFieldsValidation,
+    EmailValidation,
+    RequiredFieldValidation,
+    ValidationComposite,
+)
 
 
 def create_app() -> Flask:
-    """
-    Create and configure Flask application.
-    
-    Returns:
-        Configured Flask application instance
-    """
     app = Flask(__name__)
-    
-    # Setup middlewares
     setup_middlewares(app)
-    
-    # Initialize dependencies
+
+    account_repository = InMemoryAddAccountRepository()
     email_validator = EmailValidatorAdapter()
-    encrypter = BcryptEncrypter()
-    add_account_repository = InMemoryAddAccountRepository()
-    add_account = DbAddAccount(encrypter, add_account_repository)
-    signup_controller = SignUpController(email_validator, add_account)
-    
-    # Routes
-    @app.route('/signup', methods=['POST'])
-    def signup():
-        """Handle user signup requests."""
-        try:
-            # Get JSON data from request
-            data = request.get_json()
-            
-            # Create HTTP request object
-            http_request = HttpRequest(body=data)
-            
-            # Handle the request through the controller
-            response = signup_controller.handle(http_request)
-            
-            # Convert response to Flask response
-            if response.status_code == 200:
-                return jsonify({
-                    'success': True,
-                    'data': {
-                        'id': response.body.id,
-                        'name': response.body.name,
-                        'email': response.body.email
-                    }
-                }), response.status_code
-            else:
-                return jsonify({
-                    'success': False,
-                    'error': str(response.body)
-                }), response.status_code
-                
-        except Exception as e:
-            return jsonify({
-                'success': False,
-                'error': 'Internal server error'
-            }), 500
-    
+    bcrypt = BcryptEncrypter()
+    add_account = DbAddAccount(bcrypt, account_repository, account_repository)
+    authentication = DbAuthentication(
+        account_repository,
+        bcrypt,
+        JwtAdapter(os.getenv("JWT_SECRET", "secret")),
+        account_repository,
+    )
+    signup_validation = ValidationComposite([
+        RequiredFieldValidation("name"),
+        RequiredFieldValidation("email"),
+        RequiredFieldValidation("password"),
+        RequiredFieldValidation("passwordConfirmation"),
+        CompareFieldsValidation("password", "passwordConfirmation"),
+        EmailValidation("email", email_validator),
+    ])
+    signup_controller = SignUpController(add_account, signup_validation, authentication)
+    login_validation = ValidationComposite([
+        RequiredFieldValidation("email"),
+        RequiredFieldValidation("password"),
+        EmailValidation("email", email_validator),
+    ])
+    login_controller = LoginController(authentication, login_validation)
+
+    @app.route("/signup", methods=["POST"])
+    def legacy_signup():
+        response, status_code = adapt_route(signup_controller)()
+        data = response.get_json()
+        if 200 <= status_code <= 299:
+            return jsonify({"success": True, "data": data}), status_code
+        return jsonify({"success": False, "error": data.get("error")}), status_code
+
+    app.add_url_rule("/api/signup", "api_signup", adapt_route(signup_controller), methods=["POST"])
+    app.add_url_rule("/api/login", "api_login", adapt_route(login_controller), methods=["POST"])
+
     @app.route('/health', methods=['GET'])
     def health():
-        """Health check endpoint."""
         return jsonify({'status': 'healthy'}), 200
-    
-    return app
 
+    return app
