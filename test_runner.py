@@ -46,7 +46,7 @@ def main():
             "desc": "Running unit tests only"
         },
         "test:integration": {
-            "cmd": ["python3", "-m", "pytest", "tests/integration/", "-v", "--tb=short"],
+            "cmd": ["make", "test-integration"],
             "desc": "Running integration tests only"
         },
         "test:staged": {

@@ -125,4 +125,13 @@ The project includes MongoDB support in `docker-compose.yml`. To start MongoDB:
 docker-compose up -d mongodb
 ```
 
+Integration tests should be run through the Makefile target:
+
+```bash
+make test-integration
+```
+
+That target starts a disposable MongoDB test container, sets the test
+connection string, runs the integration tests, and removes the container.
+
 See `MONGODB.md` in the project root for more details on MongoDB setup and configuration.

@@ -1,6 +1,8 @@
 import pytest
 import pytest_asyncio
 import os
+from pymongo.errors import OperationFailure
+
 from infra.db.mongodb.account_repository import AccountMongoRepository
 from infra.db.mongodb.helpers.mongo_helper import MongoHelper
 
@@ -9,14 +11,23 @@ from infra.db.mongodb.helpers.mongo_helper import MongoHelper
 async def setup_database():
     """Setup and teardown for MongoDB connection and clean database between tests."""
     mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017")
-    await MongoHelper.connect(mongo_url)
-    
+    try:
+        await MongoHelper.connect(mongo_url)
+    except OperationFailure as exc:
+        if exc.code == 18:
+            pytest.fail(
+                "MongoDB authentication failed. If the Docker volume was created "
+                "with old credentials, recreate it with: "
+                "docker-compose down -v && docker-compose up -d mongodb"
+            )
+        raise
+
     # Clean up BEFORE the test: ensure clean state
     collection = MongoHelper.get_collection("accounts")
     collection.delete_many({})  # Delete all documents instead of dropping collection
-    
+
     yield
-    
+
     # Clean up AFTER the test
     collection.delete_many({})
     await MongoHelper.disconnect()

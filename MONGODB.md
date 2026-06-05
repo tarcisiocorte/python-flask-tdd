@@ -94,11 +94,34 @@ The MongoDB data is stored in a Docker volume named `mongodb_data`. This means:
 
 | Command | Description |
 |---------|-------------|
+| `make test-integration` | Run integration tests with a temporary MongoDB test container |
 | `docker-compose up -d mongodb` | Start MongoDB container |
 | `docker-compose down` | Stop all containers (data preserved) |
 | `docker-compose restart mongodb` | Restart MongoDB container |
 | `docker-compose logs mongodb` | View MongoDB logs |
 | `docker-compose exec mongodb mongosh -u "$MONGO_USER" -p "$MONGO_PASSWORD"` | Access MongoDB shell |
+
+## Integration Testing
+
+Use the Makefile target for integration tests:
+
+```bash
+make test-integration
+```
+
+This target starts a disposable MongoDB container named
+`flask-tdd-mongodb-test` on port `27018`, runs pytest with the `integration`
+marker, and removes the test container afterward. It does not use the persistent
+`mongodb` service or the `mongodb_data` volume.
+
+For a direct pytest run, start MongoDB yourself and provide a matching
+connection string:
+
+```bash
+docker-compose up -d mongodb
+export MONGO_URL="mongodb://<mongo-user>:<mongo-password>@localhost:27017/?authSource=admin"
+python -m pytest tests/ -v --tb=short -m "integration"
+```
 
 ## Connection String
 

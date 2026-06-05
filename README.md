@@ -95,28 +95,20 @@ Coverage output is written to `htmlcov/` when coverage reports are enabled.
 
 ## Integration Testing
 
-Integration tests use real infrastructure, currently MongoDB. Start MongoDB first:
-
-```bash
-cp .env.example .env
-docker-compose up -d mongodb
-```
-
-Set `MONGO_URL` for the integration test connection. Example format:
-
-```bash
-export MONGO_URL="mongodb://<mongo-user>:<mongo-password>@localhost:27017/?authSource=admin"
-```
-
-Then run:
+Integration tests use real infrastructure, currently MongoDB. The Makefile target
+starts an isolated temporary MongoDB container on port `27018`, runs the tests,
+and removes the container when the run finishes:
 
 ```bash
 make test-integration
 ```
 
-Equivalent direct command:
+If you run pytest directly instead of using Make, start MongoDB yourself and set
+`MONGO_URL` first. Example:
 
 ```bash
+docker-compose up -d mongodb
+export MONGO_URL="mongodb://<mongo-user>:<mongo-password>@localhost:27017/?authSource=admin"
 python -m pytest tests/ -v --tb=short -m "integration"
 ```
 

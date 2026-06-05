@@ -4,6 +4,11 @@
 .PHONY: help test test-verbose test-unit test-integration test-staged test-ci test-watch test-coverage lint lint-all format format-check type-check security start dev debug install install-dev clean clean-all db-up db-down db-restart db-logs db-shell db-clean
 
 PYTHON ?= $(shell if [ -x ./venv/bin/python3 ]; then echo ./venv/bin/python3; elif [ -x ./.venv/bin/python ]; then echo ./.venv/bin/python; else echo python3; fi)
+MONGO_TEST_CONTAINER ?= flask-tdd-mongodb-test
+MONGO_TEST_PORT ?= 27018
+MONGO_TEST_USER ?= flask_user
+MONGO_TEST_PASSWORD ?= test_password
+MONGO_TEST_DB ?= flask_db
 
 # Default target
 help:
@@ -60,7 +65,37 @@ test-unit:
 	$(PYTHON) -m pytest tests/ -v --tb=short -m "not integration and not slow"
 
 test-integration:
-	$(PYTHON) -m pytest tests/ -v --tb=short -m "integration"
+	@docker rm -f $(MONGO_TEST_CONTAINER) >/dev/null 2>&1 || true
+	@docker run -d --name $(MONGO_TEST_CONTAINER) \
+		-p $(MONGO_TEST_PORT):27017 \
+		-e MONGO_INITDB_ROOT_USERNAME=$(MONGO_TEST_USER) \
+		-e MONGO_INITDB_ROOT_PASSWORD=$(MONGO_TEST_PASSWORD) \
+		-e MONGO_INITDB_DATABASE=$(MONGO_TEST_DB) \
+		mongo:7-jammy >/dev/null
+	@status=1; \
+	for attempt in $$(seq 1 30); do \
+		if docker exec $(MONGO_TEST_CONTAINER) mongosh \
+			-u "$(MONGO_TEST_USER)" \
+			-p "$(MONGO_TEST_PASSWORD)" \
+			--authenticationDatabase admin \
+			--quiet \
+			--eval "db.adminCommand('ping').ok" >/dev/null 2>&1; then \
+			status=0; \
+			break; \
+		fi; \
+		sleep 1; \
+	done; \
+	if [ $$status -ne 0 ]; then \
+		docker logs $(MONGO_TEST_CONTAINER); \
+		docker rm -f $(MONGO_TEST_CONTAINER) >/dev/null; \
+		exit $$status; \
+	fi; \
+	MONGO_URL="mongodb://$(MONGO_TEST_USER):$(MONGO_TEST_PASSWORD)@localhost:$(MONGO_TEST_PORT)/?authSource=admin" \
+	MONGO_DB_NAME="$(MONGO_TEST_DB)" \
+	$(PYTHON) -m pytest tests/ -v --tb=short -m "integration"; \
+	status=$$?; \
+	docker rm -f $(MONGO_TEST_CONTAINER) >/dev/null; \
+	exit $$status
 
 test-middleware:
 	$(PYTHON) -m pytest tests/main/middlewares/ -v --tb=short
