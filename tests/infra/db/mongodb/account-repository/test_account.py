@@ -8,7 +8,7 @@ from infra.db.mongodb.helpers.mongo_helper import MongoHelper
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def setup_database():
     """Setup and teardown for MongoDB connection and clean database between tests."""
-    mongo_url = os.getenv("MONGO_URL", "mongodb://flask_user:flask_password@localhost:27017")
+    mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017")
     await MongoHelper.connect(mongo_url)
     
     # Clean up BEFORE the test: ensure clean state

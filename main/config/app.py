@@ -1,5 +1,6 @@
 """Flask application factory and configuration."""
 import os
+import secrets
 
 from flask import Flask, request, jsonify
 from data.usecases import DbAddAccount, DbAuthentication
@@ -19,6 +20,10 @@ from validation import (
 )
 
 
+def _jwt_secret() -> str:
+    return os.getenv("JWT_SECRET") or secrets.token_urlsafe(32)
+
+
 def create_app() -> Flask:
     app = Flask(__name__)
     setup_middlewares(app)
@@ -30,7 +35,7 @@ def create_app() -> Flask:
     authentication = DbAuthentication(
         account_repository,
         bcrypt,
-        JwtAdapter(os.getenv("JWT_SECRET", "secret")),
+        JwtAdapter(_jwt_secret()),
         account_repository,
     )
     signup_validation = ValidationComposite([
