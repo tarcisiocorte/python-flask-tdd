@@ -1,431 +1,361 @@
-# Python Flask TDD Project
+# Python Flask TDD API
 
-A Python Flask application built using Test-Driven Development (TDD) principles with a clean architecture approach. This project demonstrates a signup functionality with proper separation of concerns and comprehensive unit testing.
+Python Flask TDD API is a clean-architecture API project built to practice and demonstrate test-driven development in Python. The current HTTP surface focuses on account signup, login, health checks, validation, password hashing, JWT authentication, and persistence adapters that can be evolved toward survey workflows.
 
-## 🏗️ Project Structure
+## Goals
 
-```
-python-flask-tdd/
-├── data/                      # Data layer (infrastructure)
-│   ├── protocols/            # Data layer protocols
-│   │   ├── encrypter.py      # Encryption protocol
-│   │   └── add_account_repository.py  # Repository protocol
-│   └── usecases/             # Data usecases implementations
-│       └── add_account/      # Add account usecase
-│           ├── db_add_account.py
-│           ├── db_add_account_protocols.py
-│           └── in_memory_add_account_repository.py
-├── domain/                    # Domain layer (business logic)
-│   ├── models/               # Domain entities
-│   │   └── account.py        # Account model
-│   └── usecases/             # Business use cases
-│       └── add_account.py    # Add account use case interface
-├── presentation/             # Presentation layer
-│   ├── controllers/          # Controllers
-│   │   └── signup/           # Signup controller
-│   │       ├── signup.py
-│   │       └── signup_protocols.py
-│   ├── errors/               # Presentation errors
-│   │   ├── invalid_param_error.py
-│   │   ├── missing_param_error.py
-│   │   └── server_error.py
-│   ├── helpers/              # Helper functions
-│   │   └── http_helper.py
-│   └── protocols/            # Presentation protocols
-│       ├── controller.py
-│       ├── email_validator.py
-│       └── http.py
-├── utils/                     # Utility adapters
-│   ├── email_validator_adapter.py
-│   └── bcrypt_encrypter.py
-├── tests/                     # Test files
-│   ├── data/
-│   ├── presentation/
-│   └── utils/
-├── app.py                     # Flask application
-├── conftest.py                # Pytest configuration
-├── test_runner.py              # Test runner script
-├── requirements.txt           # Python dependencies
-└── README.md                  # This file
+- Keep business rules isolated from Flask, databases, and external libraries.
+- Use TDD as the default workflow: write focused tests, implement the behavior, then refactor.
+- Provide clear request validation and predictable HTTP responses.
+- Keep secrets out of source control. Runtime keys, database passwords, and tokens must come from environment variables.
+- Make the project easy to run locally, test in CI, and package in a container.
+
+## Project Structure
+
+```text
+data/            Use case implementations and repository protocols
+domain/          Business models and use case contracts
+infra/           Cryptography and database adapters
+main/            Flask app factory, server startup, adapters, middleware
+presentation/    Controllers, HTTP helpers, validation-facing protocols
+tests/           Unit and integration tests
+validation/      Validation rules and composites
+utils/           Library adapters such as bcrypt and email validation
 ```
 
-## 🚀 Features
+## Requirements
 
-- **Clean Architecture**: Separation of concerns with domain, use cases, and presentation layers
-- **TDD Approach**: Test-driven development with comprehensive unit tests
-- **Error Handling**: Proper error handling with custom error classes
-- **Input Validation**: Request validation for signup parameters
-- **Password Confirmation**: Password matching validation
+- Python 3.9 or newer
+- Docker and Docker Compose
+- `make` for the shortcut commands
 
-## 📋 Prerequisites
+## Local Setup
 
-- Python 3.8 or higher
-- pip (Python package installer)
-- Docker and Docker Compose (for PostgreSQL database)
-
-## 🛠️ Installation
-
-1. **Clone the repository** (if using version control):
-   ```bash
-   git clone <repository-url>
-   cd python-flask-tdd
-   ```
-
-2. **Create a virtual environment**:
-   ```bash
-   python -m venv venv
-   ```
-
-3. **Activate the virtual environment**:
-   
-   **On macOS/Linux:**
-   ```bash
-   source venv/bin/activate
-   ```
-   
-   **On Windows:**
-   ```bash
-   venv\Scripts\activate
-   ```
-
-4. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. **Set up PostgreSQL database** (optional but recommended):
-   
-   The project uses Docker Compose to run PostgreSQL in a container with a persistent volume. This ensures your data is preserved even if the container is deleted.
-   
-   **Start the PostgreSQL container:**
-   ```bash
-   make db-up
-   # or
-   docker-compose up -d postgres
-   ```
-   
-   **Check PostgreSQL logs:**
-   ```bash
-   make db-logs
-   # or
-   docker-compose logs -f postgres
-   ```
-   
-   **Access PostgreSQL shell:**
-   ```bash
-   make db-shell
-   # or
-   docker-compose exec postgres psql -U flask_user -d flask_db
-   ```
-   
-   **Stop the PostgreSQL container (data is preserved):**
-   ```bash
-   make db-down
-   # or
-   docker-compose stop postgres
-   ```
-   
-   **Restart the PostgreSQL container:**
-   ```bash
-   make db-restart
-   # or
-   docker-compose restart postgres
-   ```
-   
-   **Remove container and volume (WARNING: deletes all data):**
-   ```bash
-   make db-clean
-   # or
-   docker-compose down -v
-   ```
-   
-   **Default Database Configuration:**
-   - User: `flask_user`
-   - Password: `flask_password`
-   - Database: `flask_db`
-   - Port: `5432`
-   
-   You can customize these values by creating a `.env` file in the project root:
-   ```env
-   POSTGRES_USER=your_user
-   POSTGRES_PASSWORD=your_password
-   POSTGRES_DB=your_database
-   POSTGRES_PORT=5432
-   POSTGRES_HOST=localhost
-   ```
-
-## 🗄️ Database Setup
-
-This project uses PostgreSQL as the database. The database runs in a Docker container with a managed volume for data persistence.
-
-### Volume Management
-
-The PostgreSQL data is stored in a Docker volume named `postgres_data`. This volume persists even when the container is stopped or deleted, ensuring your data is safe.
-
-**To view Docker volumes:**
 ```bash
-docker volume ls
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements-dev.txt
+cp .env.example .env
 ```
 
-**To inspect the PostgreSQL volume:**
+Edit `.env` and replace every placeholder value before running the app or containers.
+
+Start the API:
+
 ```bash
-docker volume inspect python-flask-tdd_postgres_data
+make start
 ```
 
-**To backup the volume (optional):**
-```bash
-# Create a backup
-docker run --rm -v python-flask-tdd_postgres_data:/data -v $(pwd):/backup alpine tar czf /backup/postgres_backup.tar.gz -C /data .
+The server runs on `http://localhost:5000` by default.
 
-# Restore from backup
-docker run --rm -v python-flask-tdd_postgres_data:/data -v $(pwd):/backup alpine tar xzf /backup/postgres_backup.tar.gz -C /data
+## Environment Variables
+
+Do not commit real values. Use `.env` locally and your hosting provider's secret manager in deployed environments.
+
+```text
+PORT=5000
+JWT_SECRET=<long-random-secret>
+BCRYPT_SALT=12
+MONGO_URL=<mongodb-connection-string>
+MONGO_DB_NAME=flask_db
+POSTGRES_USER=<postgres-user>
+POSTGRES_PASSWORD=<postgres-password>
+POSTGRES_DB=flask_db
+POSTGRES_PORT=5432
+MONGO_USER=<mongo-user>
+MONGO_PASSWORD=<mongo-password>
+MONGO_PORT=27017
 ```
 
-## 🧪 Running Unit Tests
+If `JWT_SECRET` is not set during direct local Python execution, the app creates a temporary in-memory value for that process. For containers, CI, staging, and production, set `JWT_SECRET` explicitly.
 
-This project uses `pytest` for unit testing. You can run tests in multiple ways:
+## Unit Testing
 
-### 🚀 Quick Commands (Recommended)
+Run unit tests with either Make or pytest:
 
-#### Using the Test Runner Script
-
-**First, make sure your virtual environment is activated:**
 ```bash
-source venv/bin/activate  # On macOS/Linux
-# or
-venv\Scripts\activate     # On Windows
+make test-unit
 ```
 
-Then run the tests:
+Equivalent direct command:
+
 ```bash
-# Unit tests only (recommended for unit testing)
-python test_runner.py test:unit
-
-# Quick test run (quiet mode)
-python test_runner.py test
-
-# Verbose test output
-python test_runner.py test:verbose
-
-# Tests with coverage report
-python test_runner.py test:coverage
-
-# CI tests with coverage (includes XML report)
-python test_runner.py test:ci
-
-# Run last failed tests
-python test_runner.py test:staged
-
-# Watch mode for development (auto-reruns on file changes)
-python test_runner.py test:watch
-
-# Integration tests only
-python test_runner.py test:integration
+python -m pytest tests/ -v --tb=short -m "not integration and not slow"
 ```
 
-**Note:** The test runner script requires the virtual environment to be activated to access pytest and other dependencies.
+Other useful test commands:
 
-#### Using Make Commands
-
-**Make sure your virtual environment is activated first!**
 ```bash
-source venv/bin/activate  # On macOS/Linux
-# or
-venv\Scripts\activate     # On Windows
+make test
+make test-coverage
+make test-ci
+```
+
+Coverage output is written to `htmlcov/` when coverage reports are enabled.
+
+## Integration Testing
+
+Integration tests use real infrastructure, currently MongoDB. Start MongoDB first:
+
+```bash
+cp .env.example .env
+docker-compose up -d mongodb
+```
+
+Set `MONGO_URL` for the integration test connection. Example format:
+
+```bash
+export MONGO_URL="mongodb://<mongo-user>:<mongo-password>@localhost:27017/?authSource=admin"
 ```
 
 Then run:
+
 ```bash
-# Quick test run
-make test
-
-# Verbose test output
-make test-verbose
-
-# Unit tests only (recommended for unit testing)
-make test-unit
-
-# Integration tests only
 make test-integration
-
-# CI tests with coverage
-make test-ci
-
-# Watch mode for development
-make test-watch
-
-# Tests with coverage report
-make test-coverage
 ```
 
-### 🔧 Direct Python Commands
+Equivalent direct command:
 
-**Make sure your virtual environment is activated first!**
-
-#### Run All Tests
 ```bash
-pytest tests/ -v
+python -m pytest tests/ -v --tb=short -m "integration"
 ```
 
-#### Run Tests with Verbose Output
+## Running Containers
+
+The repository includes a `Dockerfile` for the API and `docker-compose.yml` for the API plus database services.
+
+Build and run the full local stack:
+
 ```bash
-pytest tests/ -v
+cp .env.example .env
+# Edit .env and replace the placeholder values.
+docker-compose up --build
 ```
 
-#### Run Unit Tests Only
+Run only the API image:
+
 ```bash
-pytest tests/ -v --tb=short
+docker build -t python-flask-tdd-api .
+docker run --rm --env-file .env -p 5000:5000 python-flask-tdd-api
 ```
 
-#### Run Tests with Coverage Report
+Run only database services:
+
 ```bash
-pytest tests/ --cov=. --cov-report=html --cov-report=term-missing
+docker-compose up -d mongodb postgres
 ```
 
-#### Run Specific Test File
+Stop containers:
+
 ```bash
-# Signup controller tests
-pytest tests/presentation/controllers/signup/test_signup.py -v
-
-# DbAddAccount tests
-pytest tests/data/usecases/add_account/test_db_add_account.py -v
-
-# Email validator tests
-pytest tests/utils/test_email_validator_adapter.py -v
+docker-compose down
 ```
 
-#### Run Tests in Watch Mode
+Remove containers and database volumes:
+
 ```bash
-pytest-watch -- --tb=short
+docker-compose down -v
 ```
 
-### 📊 Code Quality Commands
+## Deployment
 
-#### Linting
+1. Build the API image:
+
 ```bash
-# Critical errors only
-python test_runner.py lint
-# or
+docker build -t python-flask-tdd-api .
+```
+
+2. Push it to your registry:
+
+```bash
+docker tag python-flask-tdd-api <registry>/<namespace>/python-flask-tdd-api:<version>
+docker push <registry>/<namespace>/python-flask-tdd-api:<version>
+```
+
+3. Configure environment variables in the platform secret manager:
+
+```text
+JWT_SECRET
+BCRYPT_SALT
+MONGO_URL
+MONGO_DB_NAME
+PORT
+```
+
+4. Run the container with `python main/server.py` as the startup command, or use the image default command.
+
+5. Verify the deployment:
+
+```bash
+curl https://<your-api-host>/health
+```
+
+## API Reference
+
+Base URL for local development:
+
+```text
+http://localhost:5000
+```
+
+### Health Check
+
+`GET /health`
+
+```bash
+curl -i http://localhost:5000/health
+```
+
+Expected response:
+
+```json
+{
+  "status": "healthy"
+}
+```
+
+### Signup
+
+`POST /api/signup`
+
+Creates an account and returns an access token.
+
+```bash
+curl -i -X POST http://localhost:5000/api/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "email": "test.user@example.com",
+    "password": "StrongPassword123",
+    "passwordConfirmation": "StrongPassword123"
+  }'
+```
+
+Postman body:
+
+```json
+{
+  "name": "Test User",
+  "email": "test.user@example.com",
+  "password": "StrongPassword123",
+  "passwordConfirmation": "StrongPassword123"
+}
+```
+
+Successful response shape:
+
+```json
+{
+  "access_token": "<jwt-token>",
+  "name": "Test User"
+}
+```
+
+Validation errors return:
+
+```json
+{
+  "error": "Missing param: email"
+}
+```
+
+### Login
+
+`POST /api/login`
+
+Authenticates an existing account and returns an access token.
+
+```bash
+curl -i -X POST http://localhost:5000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test.user@example.com",
+    "password": "StrongPassword123"
+  }'
+```
+
+Postman body:
+
+```json
+{
+  "email": "test.user@example.com",
+  "password": "StrongPassword123"
+}
+```
+
+Successful response shape:
+
+```json
+{
+  "access_token": "<jwt-token>",
+  "name": "Test User"
+}
+```
+
+Unauthorized response:
+
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+### Legacy Signup
+
+`POST /signup`
+
+This route is kept for compatibility. Prefer `/api/signup` for new clients.
+
+```bash
+curl -i -X POST http://localhost:5000/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "email": "legacy.user@example.com",
+    "password": "StrongPassword123",
+    "passwordConfirmation": "StrongPassword123"
+  }'
+```
+
+Successful legacy response shape:
+
+```json
+{
+  "success": true,
+  "data": {
+    "access_token": "<jwt-token>",
+    "name": "Test User"
+  }
+}
+```
+
+## Current API Notes
+
+The active Flask app uses an in-memory account repository in `main/config/app.py`, so account data resets when the process restarts. MongoDB repository implementations and survey controllers exist in the codebase, but the survey routes are not currently registered in the Flask app.
+
+## Quality Commands
+
+```bash
 make lint
-
-# Full linting
-python test_runner.py lint:all
-# or
 make lint-all
-```
-
-#### Code Formatting
-```bash
-# Format code
-python test_runner.py format
-# or
 make format
-
-# Check formatting
-python test_runner.py format:check
-# or
 make format-check
-```
-
-#### Type Checking
-```bash
-python test_runner.py type-check
-# or
 make type-check
-```
-
-#### Security Scan
-```bash
-python test_runner.py security
-# or
 make security
 ```
 
-## 📝 Test Structure
+## Development Workflow
 
-The project includes comprehensive unit tests for the `SignUpController` class:
+1. Add or update tests first.
+2. Run `make test-unit`.
+3. Implement the smallest behavior that passes.
+4. Run integration tests when database behavior changes.
+5. Run `make test-ci` before opening a pull request.
 
-- **Input Validation Tests**: Verify that all required fields are provided
-- **Password Confirmation Tests**: Ensure password and confirmation match
-- **Success Case Tests**: Verify successful account creation
-- **Error Handling Tests**: Test proper error responses for various scenarios
-- **Integration Tests**: Verify correct interaction with dependencies
+## Security
 
-### Test Cases Covered
-
-1. Missing required fields (name, email, password, passwordConfirmation)
-2. Password confirmation mismatch
-3. Successful signup with valid data
-4. Server error handling
-5. Correct parameter passing to dependencies
-
-## 🏃‍♂️ Running the Application
-
-Currently, this project focuses on the business logic and testing. To run a Flask web server, you would need to add a Flask application file. Here's a basic example of how you might set it up:
-
-```python
-from flask import Flask, request, jsonify
-from signup import SignUpController
-from domain.usecases.add_account import AddAccount
-
-app = Flask(__name__)
-
-@app.route('/signup', methods=['POST'])
-def signup():
-    # Implementation would go here
-    pass
-
-if __name__ == '__main__':
-    app.run(debug=True)
-```
-
-## 🔧 Development
-
-### Adding New Features
-
-1. Write tests first (TDD approach)
-2. Implement the feature
-3. Ensure all tests pass
-4. Refactor if necessary
-
-### Code Style
-
-- Follow PEP 8 guidelines
-- Use meaningful variable and function names
-- Add docstrings for public methods
-- Keep functions small and focused
-
-## 📦 Dependencies
-
-The main dependencies include:
-
-- **Flask**: Web framework
-- **pytest**: Testing framework
-- **unittest**: Python's built-in testing framework (used in tests)
-
-See `requirements.txt` for the complete list of dependencies with specific versions.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Write tests for new functionality
-4. Implement the feature
-5. Ensure all tests pass
-6. Submit a pull request
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## 🆘 Support
-
-If you encounter any issues or have questions:
-
-1. Check the existing issues
-2. Create a new issue with detailed information
-3. Include steps to reproduce the problem
-
----
-
-**Happy coding! 🎉** 
+- Never commit `.env` or real credentials.
+- Rotate any secret that was ever shared in plain text.
+- Use different secrets for local, staging, and production.
+- Store production values in a secret manager, not in Docker images or Git history.
+- Treat access tokens returned by the API as sensitive values.

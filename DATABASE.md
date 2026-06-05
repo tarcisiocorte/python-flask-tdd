@@ -4,6 +4,13 @@ This project uses PostgreSQL running in a Docker container with a persistent vol
 
 ## Quick Start
 
+Create local environment values first:
+
+```bash
+cp .env.example .env
+# Edit .env and replace the placeholder values.
+```
+
 1. **Start PostgreSQL:**
    ```bash
    make db-up
@@ -24,7 +31,7 @@ This project uses PostgreSQL running in a Docker container with a persistent vol
 ### Default Settings
 
 - **User:** `flask_user`
-- **Password:** `flask_password`
+- **Password:** set in `.env` as `POSTGRES_PASSWORD`
 - **Database:** `flask_db`
 - **Port:** `5432`
 - **Host:** `localhost`
@@ -102,7 +109,7 @@ docker run --rm \
 For connecting from your Flask application:
 
 ```
-postgresql://flask_user:flask_password@localhost:5432/flask_db
+postgresql://<postgres-user>:<postgres-password>@localhost:5432/<postgres-db>
 ```
 
 Or using environment variables:
@@ -135,4 +142,3 @@ docker ps
 ```
 
 The STATUS column will show "healthy" when PostgreSQL is ready.
-

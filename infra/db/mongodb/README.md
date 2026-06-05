@@ -30,7 +30,7 @@ from infra.db.mongodb.helpers import MongoHelper
 import os
 
 # Configure MongoDB URL
-os.environ["MONGO_URL"] = "mongodb://flask_user:flask_password@localhost:27017"
+os.environ["MONGO_URL"] = "mongodb://<mongo-user>:<mongo-password>@localhost:27017/?authSource=admin"
 os.environ["MONGO_DB_NAME"] = "flask_db"
 
 # Connect to MongoDB
@@ -126,4 +126,3 @@ docker-compose up -d mongodb
 ```
 
 See `MONGODB.md` in the project root for more details on MongoDB setup and configuration.
-

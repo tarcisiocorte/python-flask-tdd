@@ -4,6 +4,13 @@ This project supports MongoDB running in a Docker container with a persistent vo
 
 ## Quick Start
 
+Create local environment values first:
+
+```bash
+cp .env.example .env
+# Edit .env and replace the placeholder values.
+```
+
 1. **Start MongoDB:**
    ```bash
    docker-compose up -d mongodb
@@ -16,7 +23,7 @@ This project supports MongoDB running in a Docker container with a persistent vo
 
 3. **Connect to the MongoDB shell:**
    ```bash
-   docker-compose exec mongodb mongosh -u flask_user -p flask_password
+   docker-compose exec mongodb mongosh -u "$MONGO_USER" -p "$MONGO_PASSWORD"
    ```
 
 ## Configuration
@@ -24,7 +31,7 @@ This project supports MongoDB running in a Docker container with a persistent vo
 ### Default Settings
 
 - **User:** `flask_user`
-- **Password:** `flask_password`
+- **Password:** set in `.env` as `MONGO_PASSWORD`
 - **Database:** `flask_db`
 - **Port:** `27017`
 - **Host:** `localhost`
@@ -52,7 +59,7 @@ from infra.db.mongodb.helpers import MongoHelper
 import os
 
 # Set environment variable
-os.environ["MONGO_URL"] = "mongodb://flask_user:flask_password@localhost:27017"
+os.environ["MONGO_URL"] = "mongodb://<mongo-user>:<mongo-password>@localhost:27017/?authSource=admin"
 
 # Connect to MongoDB
 await MongoHelper.connect()
@@ -91,14 +98,14 @@ The MongoDB data is stored in a Docker volume named `mongodb_data`. This means:
 | `docker-compose down` | Stop all containers (data preserved) |
 | `docker-compose restart mongodb` | Restart MongoDB container |
 | `docker-compose logs mongodb` | View MongoDB logs |
-| `docker-compose exec mongodb mongosh -u flask_user -p flask_password` | Access MongoDB shell |
+| `docker-compose exec mongodb mongosh -u "$MONGO_USER" -p "$MONGO_PASSWORD"` | Access MongoDB shell |
 
 ## Connection String
 
 For connecting from your Flask application:
 
 ```
-mongodb://flask_user:flask_password@localhost:27017
+mongodb://<mongo-user>:<mongo-password>@localhost:27017/?authSource=admin
 ```
 
 Or using environment variables:
@@ -191,4 +198,3 @@ docker-compose up -d
 ```
 
 This will start both PostgreSQL and MongoDB containers.
-
