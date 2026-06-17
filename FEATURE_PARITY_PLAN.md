@@ -1,6 +1,6 @@
 # Feature Parity Plan: Python Flask API vs clean-ts-api
 
-This plan describes how to implement, in this Python Flask project, the same feature and functionality available in `/Users/tarcisiocorte/dev/clean-ts-api`.
+This plan describes how to implement, in this Python Flask project, the same feature and functionality available in ...
 
 ## Target Feature Parity
 
@@ -30,6 +30,8 @@ Supporting features include:
 - Repository, use-case, controller, middleware, and validation tests
 
 ## Phase 1: Baseline Audit And Cleanup
+
+Status: completed in `PARITY_AUDIT.md`.
 
 1. Create a parity checklist document or extend this file.
 2. List every TypeScript route, controller, use case, repository, middleware, and test.
