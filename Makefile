@@ -8,7 +8,7 @@ MONGO_TEST_CONTAINER ?= flask-tdd-mongodb-test
 MONGO_TEST_PORT ?= 27018
 MONGO_TEST_USER ?= flask_user
 MONGO_TEST_PASSWORD ?= test_password
-MONGO_TEST_DB ?= flask_db
+MONGO_TEST_DB ?= flask_tdd_test
 
 # Default target
 help:

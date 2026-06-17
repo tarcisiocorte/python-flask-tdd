@@ -44,8 +44,13 @@ def _configure_default_mongo_url() -> None:
     )
 
 
+def _configure_default_test_database() -> None:
+    os.environ.setdefault("MONGO_DB_NAME", "flask_tdd_test")
+
+
 _load_dotenv()
 _configure_default_mongo_url()
+_configure_default_test_database()
 
 
 @pytest.fixture

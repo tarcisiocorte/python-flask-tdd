@@ -10,7 +10,13 @@ from infra.db.mongodb.helpers.mongo_helper import MongoHelper
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def setup_database():
     """Setup and teardown for MongoDB connection and clean database between tests."""
-    mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+    mongo_url = os.getenv("MONGO_URL")
+    if not mongo_url:
+        pytest.skip(
+            "MONGO_URL is required for MongoDB integration tests. "
+            "Use make test-integration or set an authenticated MongoDB URI."
+        )
+
     try:
         await MongoHelper.connect(mongo_url)
     except OperationFailure as exc:
@@ -22,13 +28,11 @@ async def setup_database():
             )
         raise
 
-    # Clean up BEFORE the test: ensure clean state
     collection = MongoHelper.get_collection("accounts")
-    collection.delete_many({})  # Delete all documents instead of dropping collection
+    collection.delete_many({})
 
     yield
 
-    # Clean up AFTER the test
     collection.delete_many({})
     await MongoHelper.disconnect()
 
