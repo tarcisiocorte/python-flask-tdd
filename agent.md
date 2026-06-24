@@ -51,43 +51,6 @@ class HealthStatus:
 
 **Tasks details:**
 See the document FEATURE_PARITY_PLAN.md
-Also see the project in the /Users/tarcisiocorte/dev/clean-ts-api
+Also see the project in the ...
 
-Please, implement the all the code for the Phase 3: Middleware Parity
-
-Implement Python equivalents for TypeScript middlewares.
-
-1. `body_parser`
-   - Mostly already covered by Flask.
-   - Keep tests verifying JSON parsing.
-
-2. `content_type`
-   - Add `Content-Type: application/json` on JSON responses.
-   - Avoid breaking empty `204` responses.
-
-3. `cors`
-   - Add headers:
-     - `Access-Control-Allow-Origin: *`
-     - `Access-Control-Allow-Methods`
-     - `Access-Control-Allow-Headers`
-   - Handle `OPTIONS` preflight.
-
-4. `no_cache`
-   - Add:
-     - `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate`
-     - `Pragma: no-cache`
-     - `Expires: 0`
-
-5. `auth`
-   - Use existing `presentation/middlewares/auth_middleware.py`.
-   - Adapt it through `main/adapters/flask_middleware_adapter.py`.
-
-6. `admin_auth`
-   - Use the same middleware, but with role `"admin"`.
-
-7. Route middleware wiring:
-   - `POST /api/surveys`: admin auth.
-   - `GET /api/surveys`: user auth.
-   - Survey result routes: user auth.
-
-Deliverable: route-level anonymous, user, and admin behavior matches the TypeScript project.
+Implement the all the necessary code for the ## Phase 4: Account And Authentication Feature Parity

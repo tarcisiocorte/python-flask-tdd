@@ -132,12 +132,13 @@ Signup and login exist, but need production wiring and parity checks.
    - invalid credentials return `401`
    - valid credentials generate and store token
    - response returns `accessToken` and `name`
-4. Align JSON field names with the TypeScript public contract:
+4. Align JSON field names with the public contract:
    - `accessToken`
    - `passwordConfirmation`
 5. Ensure `JWT_SECRET` is required in non-local contexts, but still usable in tests.
 
-Deliverable: signup and login behavior and contracts match the TypeScript project.
+Deliverable: signup and login behavior and contracts match the original project.
+
 
 ## Phase 5: Survey Creation
 
