@@ -1,5 +1,4 @@
 import os
-import secrets
 
 from data.usecases import (
     DbAddAccount,
@@ -17,6 +16,7 @@ from infra.db.mongodb import (
     SurveyMongoRepository,
     SurveyResultMongoRepository,
 )
+from main.config.env import jwt_secret
 from presentation.controllers import (
     AddSurveyController,
     LoadSurveyResultController,
@@ -32,11 +32,6 @@ from validation import (
     RequiredFieldValidation,
     ValidationComposite,
 )
-
-
-def _jwt_secret() -> str:
-    return os.getenv("JWT_SECRET") or secrets.token_urlsafe(32)
-
 
 def make_signup_validation():
     email_validator = EmailValidatorAdapter()
@@ -81,7 +76,7 @@ def make_survey_result_repository():
 def make_authentication():
     account_repository = make_account_repository()
     bcrypt_adapter = BcryptAdapter(int(os.getenv("BCRYPT_SALT", "12")))
-    jwt_adapter = JwtAdapter(_jwt_secret())
+    jwt_adapter = JwtAdapter(jwt_secret())
     return DbAuthentication(
         account_repository,
         bcrypt_adapter,
