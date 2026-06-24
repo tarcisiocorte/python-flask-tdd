@@ -6,11 +6,16 @@ from flask import jsonify, request
 from presentation.protocols import Controller, HttpRequest
 
 
+def _to_camel_case(value: str) -> str:
+    head, *tail = value.split("_")
+    return head + "".join(word.capitalize() for word in tail)
+
+
 def _serialize(value: Any) -> Any:
     if isinstance(value, Exception):
         return str(value)
     if is_dataclass(value):
-        return {key: _serialize(item) for key, item in asdict(value).items()}
+        return {_to_camel_case(key): _serialize(item) for key, item in asdict(value).items()}
     if isinstance(value, list):
         return [_serialize(item) for item in value]
     if isinstance(value, dict):
