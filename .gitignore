@@ -27,5 +27,9 @@ instance/
 # Mac OS specific
 .DS_Store
 
-# VS Code settings
-.vscode/
+# VS Code project settings
+.vscode/*
+!.vscode/
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
