@@ -15,7 +15,10 @@ class LoginController(Controller):
             error = self.validation.validate(data)
             if error:
                 return bad_request(error)
-            authentication_model = run_async(self.authentication.auth(data))
+            authentication_model = run_async(self.authentication.auth({
+                "email": data["email"],
+                "password": data["password"],
+            }))
             if not authentication_model:
                 return unauthorized()
             return ok(authentication_model)
