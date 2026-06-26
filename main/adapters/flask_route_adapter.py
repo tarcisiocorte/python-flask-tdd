@@ -1,9 +1,13 @@
 from dataclasses import asdict, is_dataclass
+import logging
 from typing import Any
 
 from flask import jsonify, request
 
 from presentation.protocols import Controller, HttpRequest
+
+
+logger = logging.getLogger(__name__)
 
 
 def _to_camel_case(value: str) -> str:
@@ -36,6 +40,11 @@ def adapt_route(controller: Controller):
             if http_response.status_code == 204:
                 return ("", 204)
             return jsonify(body), http_response.status_code
+        if http_response.status_code >= 500:
+            logger.error(
+                "Controller returned an internal error: %s",
+                getattr(http_response.body, "stack", http_response.body),
+            )
         return jsonify({"error": str(http_response.body)}), http_response.status_code
 
     return route

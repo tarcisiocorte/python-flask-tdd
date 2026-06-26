@@ -7,7 +7,13 @@ from presentation.controllers._helpers import request_data, run_async
 from presentation.errors import EmailInUseError, InvalidParamError, MissingParamError
 from presentation.helpers.http_helper import bad_request, forbidden, ok, server_error
 from presentation.protocols import Validation
-from validation.validators import CompareFieldsValidation, EmailValidation, RequiredFieldValidation, ValidationComposite
+from validation.validators import (
+    CompareFieldsValidation,
+    EmailValidation,
+    PasswordStrengthValidation,
+    RequiredFieldValidation,
+    ValidationComposite,
+)
 
 
 class SignUpController(Controller):
@@ -26,6 +32,7 @@ class SignUpController(Controller):
                 RequiredFieldValidation("password"),
                 RequiredFieldValidation("passwordConfirmation"),
                 CompareFieldsValidation("password", "passwordConfirmation"),
+                PasswordStrengthValidation("password"),
                 EmailValidation("email", email_validator),
             ])
             self.authentication = None

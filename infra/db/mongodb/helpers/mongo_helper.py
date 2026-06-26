@@ -1,10 +1,20 @@
 """MongoDB connection helper."""
 import os
-from unittest.mock import Mock
 from typing import Any, Optional
 from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.errors import ServerSelectionTimeoutError
+
+
+def _is_test_environment() -> bool:
+    environment = (
+        os.getenv("ENV")
+        or os.getenv("APP_ENV")
+        or os.getenv("FLASK_ENV")
+        or os.getenv("PYTHON_ENV")
+        or ""
+    ).lower()
+    return environment in {"test", "testing"}
 
 
 class MongoHelper:
@@ -25,14 +35,14 @@ class MongoHelper:
         if not connection_uri:
             raise ValueError("MongoDB URI must be provided or set in MONGO_URL environment variable")
 
-        if isinstance(MongoClient, Mock):
-            cls._client = MongoClient(connection_uri)
-            return
-
         cls._client = MongoClient(connection_uri, serverSelectionTimeoutMS=500)
         try:
             cls._client.admin.command("ping")
         except ServerSelectionTimeoutError:
+            if not _is_test_environment():
+                cls._client.close()
+                cls._client = None
+                raise
             import mongomock
 
             cls._client = mongomock.MongoClient()

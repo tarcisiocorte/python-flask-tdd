@@ -29,6 +29,7 @@ from utils.email_validator_adapter import EmailValidatorAdapter
 from validation import (
     CompareFieldsValidation,
     EmailValidation,
+    PasswordStrengthValidation,
     RequiredFieldValidation,
     ValidationComposite,
 )
@@ -41,6 +42,7 @@ def make_signup_validation():
         RequiredFieldValidation("password"),
         RequiredFieldValidation("passwordConfirmation"),
         CompareFieldsValidation("password", "passwordConfirmation"),
+        PasswordStrengthValidation("password"),
         EmailValidation("email", email_validator),
     ])
 

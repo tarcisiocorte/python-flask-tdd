@@ -14,6 +14,10 @@ from domain.usecases.add_survey import AddSurveyParams
 from infra.db.mongodb.helpers.mongo_helper import MongoHelper
 
 
+def _to_object_id(value: str) -> ObjectId | None:
+    return ObjectId(value) if ObjectId.is_valid(value) else None
+
+
 class SurveyMongoRepository(
     AddSurveyRepository,
     CheckSurveyByIdRepository,
@@ -35,30 +39,42 @@ class SurveyMongoRepository(
     async def load_all(self, account_id: str) -> list[SurveyModel]:
         surveys = list(MongoHelper.get_collection("surveys").find())
         results = MongoHelper.get_collection("surveyResults")
-        account_object_id = ObjectId(account_id)
+        account_object_id = _to_object_id(account_id)
         return [
             self._to_model(
                 survey,
-                did_answer=results.find_one({
-                    "surveyId": survey["_id"],
-                    "accountId": account_object_id,
-                }) is not None,
+                did_answer=(
+                    account_object_id is not None
+                    and results.find_one({
+                        "surveyId": survey["_id"],
+                        "accountId": account_object_id,
+                    }) is not None
+                ),
             )
             for survey in surveys
         ]
 
     async def load_by_id(self, survey_id: str) -> SurveyModel | None:
-        survey = MongoHelper.get_collection("surveys").find_one({"_id": ObjectId(survey_id)})
+        object_id = _to_object_id(survey_id)
+        if object_id is None:
+            return None
+        survey = MongoHelper.get_collection("surveys").find_one({"_id": object_id})
         return self._to_model(survey) if survey else None
 
     async def check_by_id(self, survey_id: str) -> bool:
+        object_id = _to_object_id(survey_id)
+        if object_id is None:
+            return False
         return MongoHelper.get_collection("surveys").find_one(
-            {"_id": ObjectId(survey_id)}, {"_id": 1}
+            {"_id": object_id}, {"_id": 1}
         ) is not None
 
     async def load_answers(self, survey_id: str) -> list[str]:
+        object_id = _to_object_id(survey_id)
+        if object_id is None:
+            return []
         survey = MongoHelper.get_collection("surveys").find_one(
-            {"_id": ObjectId(survey_id)}, {"answers": 1}
+            {"_id": object_id}, {"answers": 1}
         )
         return [answer["answer"] for answer in survey.get("answers", [])] if survey else []
 

@@ -45,6 +45,23 @@ class EmailValidation(Validation):
         return None
 
 
+@dataclass
+class PasswordStrengthValidation(Validation):
+    field_name: str
+    min_length: int = 8
+
+    def validate(self, input_data: Any) -> Exception | None:
+        password = _get(input_data, self.field_name)
+        if not password:
+            return None
+        has_lower = any(character.islower() for character in password)
+        has_upper = any(character.isupper() for character in password)
+        has_digit = any(character.isdigit() for character in password)
+        if len(password) < self.min_length or not (has_lower and has_upper and has_digit):
+            return InvalidParamError(self.field_name)
+        return None
+
+
 class ValidationComposite(Validation):
     def __init__(self, validations: Iterable[Validation]):
         self.validations = list(validations)

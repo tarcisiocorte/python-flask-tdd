@@ -2,6 +2,7 @@
 import os
 import pytest
 from unittest.mock import Mock, patch, MagicMock
+from pymongo.errors import ServerSelectionTimeoutError
 from infra.db.mongodb.helpers import MongoHelper
 
 
@@ -27,7 +28,8 @@ class TestMongoHelper:
         with patch("infra.db.mongodb.helpers.mongo_helper.MongoClient", return_value=mock_client) as mock_mongo_client:
             await MongoHelper.connect(uri)
 
-            mock_mongo_client.assert_called_once_with(uri)
+            mock_mongo_client.assert_called_once_with(uri, serverSelectionTimeoutMS=500)
+            mock_client.admin.command.assert_called_once_with("ping")
             assert MongoHelper._client == mock_client
 
     @pytest.mark.asyncio
@@ -40,7 +42,8 @@ class TestMongoHelper:
             with patch("infra.db.mongodb.helpers.mongo_helper.MongoClient", return_value=mock_client) as mock_mongo_client:
                 await MongoHelper.connect()
 
-                mock_mongo_client.assert_called_once_with(uri)
+                mock_mongo_client.assert_called_once_with(uri, serverSelectionTimeoutMS=500)
+                mock_client.admin.command.assert_called_once_with("ping")
                 assert MongoHelper._client == mock_client
 
     @pytest.mark.asyncio
@@ -51,6 +54,23 @@ class TestMongoHelper:
                 await MongoHelper.connect()
 
             assert "MongoDB URI must be provided" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_connect_raises_when_mongo_unreachable_outside_tests(self):
+        """Test that unavailable MongoDB is not replaced by mongomock outside tests."""
+        mock_client = Mock()
+        mock_client.admin.command.side_effect = ServerSelectionTimeoutError("unavailable")
+
+        with patch.dict(os.environ, {"ENV": "production"}, clear=True):
+            with patch(
+                "infra.db.mongodb.helpers.mongo_helper.MongoClient",
+                return_value=mock_client,
+            ):
+                with pytest.raises(ServerSelectionTimeoutError):
+                    await MongoHelper.connect("mongodb://localhost:27017")
+
+        mock_client.close.assert_called_once()
+        assert MongoHelper._client is None
 
     @pytest.mark.asyncio
     async def test_disconnect(self):
@@ -158,4 +178,3 @@ class TestMongoHelper:
             MongoHelper.get_collection("users")
 
         assert "MongoDB client is not connected" in str(exc_info.value)
-

@@ -24,7 +24,7 @@ def make_add_account_stub() -> AddAccount:
                 id="valid_id",
                 name="valid_name",
                 email="valid_email@mail.com",
-                password="valid_password"
+                password="Valid_password123"
             )
     return AddAccountStub()
 
@@ -40,8 +40,8 @@ class TestSignUpController(unittest.TestCase):
         sut = make_sut()
         http_request = HttpRequest({
             "email": "any_email@mail.com",
-            "password": "any_password",
-            "passwordConfirmation": "any_password"
+            "password": "Valid_password123",
+            "passwordConfirmation": "Valid_password123"
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 400)
@@ -52,8 +52,8 @@ class TestSignUpController(unittest.TestCase):
         sut = make_sut()
         http_request = HttpRequest({
             "name": "any_name",
-            "password": "any_password",
-            "passwordConfirmation": "any_password"
+            "password": "Valid_password123",
+            "passwordConfirmation": "Valid_password123"
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 400)
@@ -65,7 +65,7 @@ class TestSignUpController(unittest.TestCase):
         http_request = HttpRequest({
             "name": "any_name",
             "email": "any_email@mail.com",
-            "passwordConfirmation": "any_password"
+            "passwordConfirmation": "Valid_password123"
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 400)
@@ -77,7 +77,7 @@ class TestSignUpController(unittest.TestCase):
         http_request = HttpRequest({
             "name": "any_name",
             "email": "any_email@mail.com",
-            "password": "any_password"
+            "password": "Valid_password123"
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 400)
@@ -89,7 +89,7 @@ class TestSignUpController(unittest.TestCase):
         http_request = HttpRequest({
             "name": "any_name",
             "email": "any_email@mail.com",
-            "password": "any_password",
+            "password": "Valid_password123",
             "passwordConfirmation": "invalid_confirmation"
         })
         http_response = sut.handle(http_request)
@@ -102,15 +102,28 @@ class TestSignUpController(unittest.TestCase):
         http_request = HttpRequest({
             "name": "any_name",
             "email": "any_email@mail.com",
-            "password": "any_password",
-            "passwordConfirmation": "any_password"
+            "password": "Valid_password123",
+            "passwordConfirmation": "Valid_password123"
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 200)
         self.assertEqual(http_response.body.id, "valid_id")
         self.assertEqual(http_response.body.name, "valid_name")
         self.assertEqual(http_response.body.email, "valid_email@mail.com")
-        self.assertEqual(http_response.body.password, "valid_password")
+        self.assertEqual(http_response.body.password, "Valid_password123")
+
+    def test_should_return_400_if_password_is_weak(self):
+        sut = make_sut()
+        http_request = HttpRequest({
+            "name": "any_name",
+            "email": "any_email@mail.com",
+            "password": "password",
+            "passwordConfirmation": "password"
+        })
+        http_response = sut.handle(http_request)
+        self.assertEqual(http_response.status_code, 400)
+        self.assertIsInstance(http_response.body, InvalidParamError)
+        self.assertEqual(str(http_response.body), "Invalid param: password")
 
     def test_should_return_500_if_add_account_throws(self):
         email_validator_stub = make_email_validator_stub()
@@ -124,8 +137,8 @@ class TestSignUpController(unittest.TestCase):
         http_request = HttpRequest({
             "name": "any_name",
             "email": "any_email@mail.com",
-            "password": "any_password",
-            "passwordConfirmation": "any_password"
+            "password": "Valid_password123",
+            "passwordConfirmation": "Valid_password123"
         })
         http_response = sut.handle(http_request)
         self.assertEqual(http_response.status_code, 500)
@@ -139,21 +152,21 @@ class TestSignUpController(unittest.TestCase):
                 id="valid_id",
                 name="valid_name",
                 email="valid_email@mail.com",
-                password="valid_password"
+                password="Valid_password123"
             )
         add_account_spy.add = AsyncMock(side_effect=mock_add)
         sut = SignUpController(email_validator_stub, add_account_spy)
         http_request = HttpRequest({
             "name": "any_name",
             "email": "any_email@mail.com",
-            "password": "any_password",
-            "passwordConfirmation": "any_password"
+            "password": "Valid_password123",
+            "passwordConfirmation": "Valid_password123"
         })
         sut.handle(http_request)
         add_account_spy.add.assert_called_once_with(AddAccountModel(
             name="any_name",
             email="any_email@mail.com",
-            password="any_password"
+            password="Valid_password123"
         ))
 
 

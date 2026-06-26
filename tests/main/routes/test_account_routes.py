@@ -66,8 +66,8 @@ def test_signup_returns_public_authentication_contract(client):
         json={
             "name": "Signup User",
             "email": "signup@mail.com",
-            "password": "secret",
-            "passwordConfirmation": "secret",
+            "password": "Valid_secret123",
+            "passwordConfirmation": "Valid_secret123",
         },
     )
 
@@ -106,3 +106,25 @@ def test_login_returns_401_for_invalid_credentials(client):
 
     assert response.status_code == 401
     assert response.get_json() == {"error": "Unauthorized"}
+
+
+def test_login_is_rate_limited(monkeypatch, client):
+    monkeypatch.setenv("AUTH_RATE_LIMIT_MAX_REQUESTS", "2")
+    monkeypatch.setenv("AUTH_RATE_LIMIT_WINDOW_SECONDS", "60")
+    test_client, _, login_controller = client
+
+    for _ in range(2):
+        response = test_client.post(
+            "/api/login",
+            json={"email": "login@mail.com", "password": "Valid_secret123"},
+        )
+        assert response.status_code == 200
+
+    response = test_client.post(
+        "/api/login",
+        json={"email": "login@mail.com", "password": "Valid_secret123"},
+    )
+
+    assert response.status_code == 429
+    assert response.get_json() == {"error": "Too many requests"}
+    assert login_controller.handle.call_count == 2

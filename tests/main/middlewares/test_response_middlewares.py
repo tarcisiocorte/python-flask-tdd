@@ -14,9 +14,12 @@ def test_adds_json_content_type_and_cross_origin_headers():
     response = app.test_client().get("/test-response-headers")
 
     assert response.content_type == "application/json"
-    assert response.headers["Access-Control-Allow-Origin"] == "*"
-    assert response.headers["Access-Control-Allow-Methods"] == "*"
-    assert response.headers["Access-Control-Allow-Headers"] == "*"
+    assert response.headers["Access-Control-Allow-Origin"] == "http://localhost:3000"
+    assert response.headers["Access-Control-Allow-Methods"] == "GET,POST,PUT,DELETE,OPTIONS"
+    assert (
+        response.headers["Access-Control-Allow-Headers"]
+        == "Content-Type,Authorization,x-access-token"
+    )
 
 
 def test_adds_no_cache_headers():
@@ -31,7 +34,11 @@ def test_adds_no_cache_headers():
     assert response.headers["Surrogate-Control"] == "no-store"
 
 
-def test_handles_options_preflight_without_authentication():
+def test_handles_options_preflight_without_authentication(monkeypatch):
+    monkeypatch.setenv("CORS_ALLOWED_ORIGINS", "https://example.com")
+    monkeypatch.setenv("CORS_ALLOWED_METHODS", "GET,POST")
+    monkeypatch.setenv("CORS_ALLOWED_HEADERS", "Content-Type,x-access-token")
+
     response = create_app().test_client().options(
         "/api/surveys",
         headers={
@@ -42,9 +49,9 @@ def test_handles_options_preflight_without_authentication():
 
     assert response.status_code == 204
     assert response.data == b""
-    assert response.headers["Access-Control-Allow-Origin"] == "*"
-    assert response.headers["Access-Control-Allow-Methods"] == "*"
-    assert response.headers["Access-Control-Allow-Headers"] == "*"
+    assert response.headers["Access-Control-Allow-Origin"] == "https://example.com"
+    assert response.headers["Access-Control-Allow-Methods"] == "GET,POST"
+    assert response.headers["Access-Control-Allow-Headers"] == "Content-Type,x-access-token"
 
 
 def test_does_not_force_json_content_type_on_empty_204_response():
