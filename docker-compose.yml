@@ -6,7 +6,7 @@ services:
       PORT: ${PORT:-5000}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       BCRYPT_SALT: ${BCRYPT_SALT:-12}
-      MONGO_URL: mongodb://${MONGO_USER:-flask_user}:${MONGO_PASSWORD:?Set MONGO_PASSWORD in .env}@mongodb:27017/?authSource=admin
+      MONGO_URL: mongodb://${MONGO_APP_USER:-flask_app}:${MONGO_APP_PASSWORD:?Set MONGO_APP_PASSWORD in .env}@mongodb:27017/${MONGO_DB_NAME:-flask_db}?authSource=${MONGO_DB_NAME:-flask_db}
       MONGO_DB_NAME: ${MONGO_DB_NAME:-flask_db}
     ports:
       - "${PORT:-5000}:5000"
@@ -22,8 +22,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-flask_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-flask_db}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -37,15 +35,17 @@ services:
     image: mongo:7-jammy
     container_name: flask-tdd-mongodb
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-flask_user}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Set MONGO_PASSWORD in .env}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-mongo_root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD in .env}
       MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-flask_db}
-    ports:
-      - "${MONGO_PORT:-27017}:27017"
+      MONGO_DB_NAME: ${MONGO_DB_NAME:-flask_db}
+      MONGO_APP_USER: ${MONGO_APP_USER:-flask_app}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:?Set MONGO_APP_PASSWORD in .env}
     volumes:
       - mongodb_data:/data/db
+      - ./docker/mongodb/init-app-user.js:/docker-entrypoint-initdb.d/init-app-user.js:ro
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD-SHELL", "mongosh -u \"$${MONGO_INITDB_ROOT_USERNAME}\" -p \"$${MONGO_INITDB_ROOT_PASSWORD}\" --authenticationDatabase admin --eval \"db.adminCommand('ping')\""]
       interval: 10s
       timeout: 5s
       retries: 5
