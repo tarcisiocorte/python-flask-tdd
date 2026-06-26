@@ -27,20 +27,39 @@ class AddAccountRepositoryStub(AddAccountRepository):
         )
 
 
+class CheckAccountByEmailRepositoryStub:
+    def __init__(self, exists: bool = False):
+        self.exists = exists
+        self.emails = []
+
+    async def check_by_email(self, email: str) -> bool:
+        self.emails.append(email)
+        return self.exists
+
+
 class SutTypes(NamedTuple):
     sut: DbAddAccount
     encrypter_stub: EncrypterStub
     add_account_repository_stub: AddAccountRepositoryStub
+    check_account_by_email_repository_stub: CheckAccountByEmailRepositoryStub
 
 
-def make_sut() -> SutTypes:
+def make_sut(account_exists: bool = False) -> SutTypes:
     encrypter_stub = EncrypterStub()
     add_account_repository_stub = AddAccountRepositoryStub()
-    sut = DbAddAccount(encrypter_stub, add_account_repository_stub)
+    check_account_by_email_repository_stub = CheckAccountByEmailRepositoryStub(
+        account_exists
+    )
+    sut = DbAddAccount(
+        encrypter_stub,
+        add_account_repository_stub,
+        check_account_by_email_repository_stub,
+    )
     return SutTypes(
         sut=sut,
         encrypter_stub=encrypter_stub,
-        add_account_repository_stub=add_account_repository_stub
+        add_account_repository_stub=add_account_repository_stub,
+        check_account_by_email_repository_stub=check_account_by_email_repository_stub,
     )
 
 
@@ -120,6 +139,45 @@ class TestDbAddAccount(unittest.TestCase):
             self.assertEqual(account.name, "valid_name")
             self.assertEqual(account.email, "valid_email")
             self.assertEqual(account.password, "hashed_password")
+
+    def test_should_check_email_before_creating_account(self):
+        sut_types = make_sut()
+        sut = sut_types.sut
+        checker_stub = sut_types.check_account_by_email_repository_stub
+
+        account_data = AddAccountModel(
+            name="valid_name",
+            email="valid_email",
+            password="valid_password"
+        )
+
+        asyncio.run(sut.add(account_data))
+
+        self.assertEqual(checker_stub.emails, ["valid_email"])
+
+    def test_should_return_none_without_hashing_or_inserting_if_email_exists(self):
+        sut_types = make_sut(account_exists=True)
+        sut = sut_types.sut
+        encrypter_stub = sut_types.encrypter_stub
+        add_account_repository_stub = sut_types.add_account_repository_stub
+
+        with patch.object(encrypter_stub, 'encrypt', new_callable=AsyncMock) as encrypt_spy:
+            with patch.object(
+                add_account_repository_stub,
+                'add',
+                new_callable=AsyncMock,
+            ) as add_spy:
+                account_data = AddAccountModel(
+                    name="valid_name",
+                    email="valid_email",
+                    password="valid_password"
+                )
+
+                account = asyncio.run(sut.add(account_data))
+
+                self.assertIsNone(account)
+                encrypt_spy.assert_not_called()
+                add_spy.assert_not_called()
 
     def test_should_throw_if_add_account_repository_throws(self):
         sut_types = make_sut()

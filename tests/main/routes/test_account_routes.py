@@ -4,8 +4,19 @@ import pytest
 
 from domain.usecases import AuthenticationModel
 from main.config.app import create_app
+from presentation.errors import EmailInUseError
 from presentation.errors import UnauthorizedError
 from presentation.protocols import HttpResponse
+
+
+PRIVATE_AUTH_RESPONSE_FIELDS = {"access_token", "password", "email", "id"}
+
+
+def assert_public_auth_response(body, token, name):
+    assert body["accessToken"] == token
+    assert body["name"] == name
+    assert PRIVATE_AUTH_RESPONSE_FIELDS.isdisjoint(body)
+    assert set(body) == {"accessToken", "name"}
 
 
 @pytest.fixture
@@ -72,10 +83,7 @@ def test_signup_returns_public_authentication_contract(client):
     )
 
     assert response.status_code == 200
-    assert response.get_json() == {
-        "accessToken": "signup_token",
-        "name": "Signup User",
-    }
+    assert_public_auth_response(response.get_json(), "signup_token", "Signup User")
     signup_controller.handle.assert_called_once()
 
 
@@ -88,10 +96,7 @@ def test_login_returns_public_authentication_contract(client):
     )
 
     assert response.status_code == 200
-    assert response.get_json() == {
-        "accessToken": "login_token",
-        "name": "Login User",
-    }
+    assert_public_auth_response(response.get_json(), "login_token", "Login User")
     login_controller.handle.assert_called_once()
 
 
@@ -106,6 +111,24 @@ def test_login_returns_401_for_invalid_credentials(client):
 
     assert response.status_code == 401
     assert response.get_json() == {"error": "Unauthorized"}
+
+
+def test_signup_returns_403_for_duplicate_email(client):
+    test_client, signup_controller, _ = client
+    signup_controller.handle.return_value = HttpResponse(403, EmailInUseError())
+
+    response = test_client.post(
+        "/api/signup",
+        json={
+            "name": "Signup User",
+            "email": "signup@mail.com",
+            "password": "Valid_secret123",
+            "passwordConfirmation": "Valid_secret123",
+        },
+    )
+
+    assert response.status_code == 403
+    assert response.get_json() == {"error": "Email already in use"}
 
 
 def test_login_is_rate_limited(monkeypatch, client):
