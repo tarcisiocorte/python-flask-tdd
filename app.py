@@ -13,8 +13,14 @@ To use the new structure, run:
 Or import from:
     from main.config.app import create_app
 """
+import os
+
 from main.config.app import create_app
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(
+        debug=os.getenv("FLASK_DEBUG") == "1",
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "5000")),
+    )
